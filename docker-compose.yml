@@ -1,0 +1,15 @@
+services:
+  mongodb:
+    build: .
+    image: etecbooking-mongo
+    container_name: etecbooking-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - etecbooking-mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: etecbooking
+
+volumes:
+  etecbooking-mongo-data:

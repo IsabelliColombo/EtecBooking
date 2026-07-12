@@ -14,14 +14,30 @@ function toBook(document: BookDocument): Book {
   };
 }
 
-export async function getFeaturedBooks(): Promise<Book[]> {
+export async function getAllBooks(): Promise<Book[]> {
   try {
     const books = await getBooksCollection();
     const documents = await books.find().sort({ title: 1 }).toArray();
+    const allBooks = documents.map(toBook);
 
-    return documents.map(toBook);
+    if (allBooks.length === 0) {
+      return mockBooks;
+    }
+
+    if (allBooks.length < mockBooks.length) {
+      const existingIds = new Set(allBooks.map((book) => book.id));
+      const extraBooks = mockBooks.filter((book) => !existingIds.has(book.id));
+      return [...allBooks, ...extraBooks];
+    }
+
+    return allBooks;
   } catch (error) {
     console.warn("MongoDB indisponível, usando livros de exemplo.", error);
     return mockBooks;
   }
+}
+
+export async function getFeaturedBooks(): Promise<Book[]> {
+  const allBooks = await getAllBooks();
+  return allBooks.slice(0, 5);
 }

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  Bell,
   BookOpen,
   Bookmark,
   Calendar,
@@ -20,7 +21,8 @@ import { cn } from "@/lib/cn";
 
 export const navItems = [
   { label: "Início", href: "/home", icon: Home },
-  { label: "Catálogo", href: "#", icon: BookOpen },
+  { label: "Catálogo", href: "/catalogo", icon: BookOpen },
+  { label: "Meu Perfil", href: "/perfil", icon: Bookmark },
   { label: "Empréstimos", href: "#", icon: Calendar },
   { label: "Reservas", href: "#", icon: Bookmark },
   { label: "Novidades", href: "#", icon: Newspaper },
@@ -96,7 +98,16 @@ export function Navbar() {
     <header className="relative z-40 bg-surface">
       <div className="container mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
         <EtecLogo />
-        <ThemeToggle />
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-border bg-surface text-foreground transition-colors duration-150 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30"
+            aria-label="Notificações"
+          >
+            <Bell className="size-5" aria-hidden />
+          </button>
+          <ThemeToggle />
+        </div>
       </div>
 
       <nav

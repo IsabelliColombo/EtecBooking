@@ -3,26 +3,7 @@ import { BookOpen, Bookmark, Calendar, Search } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
 
-const quickLinks = [
-  {
-    icon: BookOpen,
-    title: "Catálogo",
-    description: "Explore nosso acervo",
-    href: "#",
-  },
-  {
-    icon: Calendar,
-    title: "Empréstimos",
-    description: "Consulte seus empréstimos",
-    href: "#",
-  },
-  {
-    icon: Bookmark,
-    title: "Reservas",
-    description: "Reserve seu próximo livro",
-    href: "#",
-  },
-] as const;
+
 
 export function HeroSection() {
   return (
@@ -42,11 +23,11 @@ export function HeroSection() {
           <div className="relative flex flex-col gap-8 px-6 py-12 md:px-12 md:py-16 lg:py-20">
             <div className="max-w-2xl space-y-4">
               <h1 className="text-h2 font-bold text-white md:text-h1">
-                Biblioteca Online ETEC de Araras
+               ETECBOOKING: BIBLIOTECA ONLINE DA ETEC PREFEITO ALBERTO FERES
               </h1>
               <p className="text-body text-white/90 md:text-lg">
                 Conhecimento ao seu alcance. Pesquise, explore e empreste livros
-                de onde estiver.
+                que estão disponíveis na biblioteca.
               </p>
             </div>
 
@@ -57,7 +38,7 @@ export function HeroSection() {
               <input
                 id="hero-search"
                 type="search"
-                placeholder="Pesquise por título, autor ou assunto..."
+                placeholder="Pesquise por título ou autor..."
                 className="h-12 min-w-0 flex-1 bg-transparent px-4 text-body text-foreground placeholder:text-muted focus:outline-none md:h-14 md:px-6"
               />
               <button
@@ -73,34 +54,7 @@ export function HeroSection() {
               </button>
             </form>
 
-            <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:gap-6 lg:gap-10">
-              {quickLinks.map(({ icon: Icon, title, description, href }) => (
-                <Link
-                  key={title}
-                  href={href}
-                  className={cn(
-                    "group flex items-center gap-3 text-white",
-                    "transition-opacity duration-150 hover:opacity-90",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "flex size-10 shrink-0 items-center justify-center rounded-full",
-                      "border-2 border-white/80 bg-white/10",
-                      "transition-colors duration-150 group-hover:bg-white/20",
-                    )}
-                    aria-hidden
-                  >
-                    <Icon className="size-4" />
-                  </span>
-                  <span className="text-small md:text-body">
-                    <strong className="font-semibold">{title}</strong>
-                    {" — "}
-                    {description}
-                  </span>
-                </Link>
-              ))}
-            </div>
+         
           </div>
         </div>
       </div>

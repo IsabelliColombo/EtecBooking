@@ -13,13 +13,9 @@ A aplicação apresenta uma interface para explorar livros e navegar por página
 Antes de começar, tenha instalado no seu computador:
 
 - Bun.js (recomendado como padrão para este projeto)
-- Docker Desktop para Windows (para subir o banco de dados MongoDB em um container)
+- Docker (para subir o banco de dados)
 
 Para instalar o Bun.js, siga as instruções oficiais: https://bun.sh/docs/installation
-
-Para instalar o Docker no Windows, use o link oficial: https://www.docker.com/products/docker-desktop/
-
-Docker é necessário porque o projeto usa MongoDB em um ambiente isolado. Isso evita que você precise instalar o banco de dados diretamente no Windows e garante que o projeto funcione igual para todo mundo.
 
 ## Como clonar o repositório
 

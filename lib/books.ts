@@ -1,6 +1,6 @@
 import type { BookDocument } from "@/lib/db/types";
 import { getBooksCollection } from "@/lib/mongodb";
-import type { Book } from "@/lib/mock-books";
+import { mockBooks, type Book } from "@/lib/mock-books";
 
 function toBook(document: BookDocument): Book {
   return {
@@ -15,8 +15,13 @@ function toBook(document: BookDocument): Book {
 }
 
 export async function getFeaturedBooks(): Promise<Book[]> {
-  const books = await getBooksCollection();
-  const documents = await books.find().sort({ title: 1 }).toArray();
+  try {
+    const books = await getBooksCollection();
+    const documents = await books.find().sort({ title: 1 }).toArray();
 
-  return documents.map(toBook);
+    return documents.map(toBook);
+  } catch (error) {
+    console.warn("MongoDB indisponível, usando livros de exemplo.", error);
+    return mockBooks;
+  }
 }

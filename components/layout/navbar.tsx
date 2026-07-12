@@ -8,11 +8,9 @@ import {
   Bookmark,
   Calendar,
   Home,
-  Info,
   LogIn,
   Menu,
   Newspaper,
-  Phone,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -26,8 +24,6 @@ export const navItems = [
   { label: "Empréstimos", href: "#", icon: Calendar },
   { label: "Reservas", href: "#", icon: Bookmark },
   { label: "Novidades", href: "#", icon: Newspaper },
-  { label: "Sobre", href: "#", icon: Info },
-  { label: "Contato", href: "#", icon: Phone },
 ] as const;
 
 function NavLink({

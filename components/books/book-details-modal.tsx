@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getBookCoverUrl, type Book } from "@/lib/mock-books";
@@ -14,6 +15,8 @@ interface BookDetailsModalProps {
 }
 
 export function BookDetailsModal({ book, open, onClose }: BookDetailsModalProps) {
+  const router = useRouter();
+
   useEffect(() => {
     if (!open) return;
 
@@ -112,8 +115,7 @@ export function BookDetailsModal({ book, open, onClose }: BookDetailsModalProps)
               className="w-full"
               disabled={!book.available}
               onClick={() => {
-                // TODO: integrar fluxo de reserva
-                onClose();
+                router.push(`/reservas?bookId=${encodeURIComponent(book.id)}`);
               }}
             >
               Reservar

@@ -5,16 +5,15 @@ const footerItems = [
     icon: Clock,
     title: "Horário de Funcionamento",
     lines: [
-      "Segunda a Sexta: 8h às 21h",
-      "Sábado: 8h às 12h",
+      "Segunda a Sexta: 8h às 12h",
     ],
   },
   {
     icon: MapPin,
     title: "Localização",
     lines: [
-      "R. Domingos Graziano, 355 - Jd. José Ometto",
-      "Araras - SP, 13607-018",
+      "Av. Senador César Lacerda de Vergueiro, 690 - Jardim Candida",
+      "Araras - SP, 13603-013",
     ],
   },
   {
@@ -22,7 +21,7 @@ const footerItems = [
     title: "Fale Conosco",
     lines: [
       "biblioteca@etecararas.com.br",
-      "(19) 99999-9999",
+      "(19) 3543-9500",
     ],
   },
 ] as const;

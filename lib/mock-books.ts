@@ -162,3 +162,11 @@ export function getBookCoverUrl(
 ) {
   return `https://picsum.photos/seed/${coverSeed}/${width}/${height}`;
 }
+
+export const CATALOG_CATEGORIES = [
+  "Ficção",
+  "Infantojuvenil",
+  "Clássicos",
+  "Fantasia",
+  "Literatura",
+] as const;

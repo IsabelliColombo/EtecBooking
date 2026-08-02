@@ -7,11 +7,11 @@ import {
   Bell,
   BookOpen,
   Bookmark,
-  Calendar,
   Home,
   LogIn,
   Menu,
   Newspaper,
+  User,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -22,10 +22,9 @@ import { cn } from "@/lib/cn";
 export const navItems = [
   { label: "Início", href: "/home", icon: Home },
   { label: "Catálogo", href: "/catalogo", icon: BookOpen },
-  { label: "Meu Perfil", href: "/perfil", icon: Bookmark },
-  { label: "Empréstimos", href: "#", icon: Calendar },
-  { label: "Reservas", href: "#", icon: Bookmark },
-  { label: "Novidades", href: "#", icon: Newspaper },
+  { label: "Reserva", href: "/reservas", icon: Bookmark },
+  { label: "Novidade", href: "#", icon: Newspaper },
+  { label: "Meu Perfil", href: "/perfil", icon: User },
 ] as const;
 
 function NavLink({
@@ -49,8 +48,8 @@ function NavLink({
       onClick={onClick}
       className={cn(
         "flex items-center gap-2 rounded-button px-3 py-2.5 text-small font-medium text-white",
-        "transition-colors duration-150",
-        "hover:bg-primary-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
+        "cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:bg-primary-700/60",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
         active && "bg-primary-700/40",
         className,
       )}
@@ -132,8 +131,8 @@ export function Navbar() {
             href="/login"
             className={cn(
               "hidden items-center gap-1.5 rounded-button px-3 py-2 text-small font-medium text-white lg:flex",
-              "transition-colors duration-150",
-              "hover:bg-primary-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
+              "cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:bg-primary-700/60",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
             )}
           >
             <LogIn className="size-4" aria-hidden />
@@ -144,8 +143,8 @@ export function Navbar() {
             type="button"
             className={cn(
               "ml-auto flex size-11 items-center justify-center rounded-button text-white lg:hidden",
-              "transition-colors duration-150",
-              "hover:bg-primary-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
+              "cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:bg-primary-700/60",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
             )}
             onClick={() => setOpen((current) => !current)}
             aria-expanded={open}

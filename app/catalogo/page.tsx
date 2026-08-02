@@ -1,9 +1,11 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import { BookOpen, Heart, Search } from "lucide-react";
+import { CategoryFilter } from "@/components/catalogo/category-filter";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { Input } from "@/components/ui/input";
-import { getAllBooks } from "@/lib/books";
+import { getBooksByCategory } from "@/lib/books";
 import { getBookCoverUrl, type Book } from "@/lib/mock-books";
 
 function CatalogBookCard({ book }: { book: Book }) {
@@ -68,8 +70,19 @@ function CatalogBookCard({ book }: { book: Book }) {
   );
 }
 
-export default async function CatalogPage() {
-  const books = await getAllBooks();
+export default async function CatalogPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ categoria?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const categoriaParam = params.categoria;
+  const category =
+    typeof categoriaParam === "string" && categoriaParam.length > 0
+      ? categoriaParam
+      : null;
+
+  const books = await getBooksByCategory(category);
 
   return (
     <div className="flex min-h-full flex-col bg-background">
@@ -95,16 +108,17 @@ export default async function CatalogPage() {
                 <Input
                   label=""
                   icon={Search}
-                  placeholder="Buscar livros, autores, categorias..."
+                  placeholder="Buscar livros..."
                   className="h-12"
                 />
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <select className="h-12 rounded-button border border-border bg-surface px-4 text-body text-foreground outline-none transition-all duration-150 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30">
-                    <option>Todas as categorias</option>
-                    <option>Ficção</option>
-                    <option>Infantojuvenil</option>
-                    <option>Clássicos</option>
-                  </select>
+                  <Suspense
+                    fallback={
+                      <div className="h-12 rounded-button border border-border bg-surface" />
+                    }
+                  >
+                    <CategoryFilter />
+                  </Suspense>
                   <select className="h-12 rounded-button border border-border bg-surface px-4 text-body text-foreground outline-none transition-all duration-150 focus:border-primary-500 focus:ring-2 focus:ring-primary-500/30">
                     <option>Ordenar por: Título</option>
                     <option>Autor</option>
@@ -115,25 +129,23 @@ export default async function CatalogPage() {
             </div>
           </div>
 
-          <div className="mb-6 flex flex-col gap-4 rounded-card border border-border bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-6 rounded-card border border-border bg-surface p-4 shadow-sm">
             <p className="text-body text-foreground">
               <span className="font-semibold text-foreground">{books.length}</span> livros encontrados
             </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <button className="inline-flex items-center gap-2 rounded-button border border-border bg-surface px-4 py-2 text-small font-medium text-foreground transition-colors duration-150 hover:bg-surface-2">
-                Todas as categorias
-              </button>
-              <button className="inline-flex items-center gap-2 rounded-button border border-border bg-surface px-4 py-2 text-small font-medium text-foreground transition-colors duration-150 hover:bg-surface-2">
-                Ordenar por: Título
-              </button>
-            </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {books.map((book) => (
-              <CatalogBookCard key={book.id} book={book} />
-            ))}
-          </div>
+          {books.length === 0 ? (
+            <p className="text-body text-muted">
+              Nenhum livro encontrado para esta categoria.
+            </p>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {books.map((book) => (
+                <CatalogBookCard key={book.id} book={book} />
+              ))}
+            </div>
+          )}
         </section>
       </main>
       <Footer />

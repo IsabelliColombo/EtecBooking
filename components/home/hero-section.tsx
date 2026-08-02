@@ -1,9 +1,4 @@
 import Image from "next/image";
-import { BookOpen, Bookmark, Calendar, Search } from "lucide-react";
-import Link from "next/link";
-import { cn } from "@/lib/cn";
-
-
 
 export function HeroSection() {
   return (
@@ -20,41 +15,16 @@ export function HeroSection() {
           />
           <div className="absolute inset-0 bg-black/55" aria-hidden />
 
-          <div className="relative flex flex-col gap-8 px-6 py-12 md:px-12 md:py-16 lg:py-20">
+          <div className="relative flex flex-col items-center justify-center px-6 py-12 text-center md:px-12 md:py-16 lg:py-20">
             <div className="max-w-2xl space-y-4">
               <h1 className="text-h2 font-bold text-white md:text-h1">
-               ETECBOOKING: BIBLIOTECA ONLINE DA ETEC PREFEITO ALBERTO FERES
+                ETECBOOKING: BIBLIOTECA ONLINE DA ETEC PREFEITO ALBERTO FERES
               </h1>
               <p className="text-body text-white/90 md:text-lg">
                 Conhecimento ao seu alcance. Pesquise, explore e empreste livros
                 que estão disponíveis na biblioteca.
               </p>
             </div>
-
-            <form className="flex w-full max-w-3xl overflow-hidden rounded-input bg-surface shadow-lg">
-              <label htmlFor="hero-search" className="sr-only">
-                Pesquisar livros
-              </label>
-              <input
-                id="hero-search"
-                type="search"
-                placeholder="Pesquise por título ou autor..."
-                className="h-12 min-w-0 flex-1 bg-transparent px-4 text-body text-foreground placeholder:text-muted focus:outline-none md:h-14 md:px-6"
-              />
-              <button
-                type="submit"
-                className={cn(
-                  "flex h-12 w-14 shrink-0 items-center justify-center bg-primary-500 text-white md:h-14 md:w-16",
-                  "transition-colors duration-150 hover:bg-primary-600",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/50 focus-visible:ring-offset-2",
-                )}
-                aria-label="Pesquisar"
-              >
-                <Search className="size-5" aria-hidden />
-              </button>
-            </form>
-
-         
           </div>
         </div>
       </div>

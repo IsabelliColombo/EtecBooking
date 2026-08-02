@@ -1,6 +1,7 @@
 "use client";
 
-import { BookOpen, Lock, Mail } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, Hash, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,9 +9,16 @@ import { Input } from "@/components/ui/input";
 
 export function LoginForm() {
   const router = useRouter();
+  const [rm, setRm] = useState("");
+
+  function handleRmChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const digitsOnly = event.target.value.replace(/\D/g, "").slice(0, 5);
+    setRm(digitsOnly);
+  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (rm.length !== 5) return;
     router.push("/home");
   }
 
@@ -31,12 +39,17 @@ export function LoginForm() {
       <Card padding="lg" className="shadow-lg">
         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <Input
-            label="E-mail"
-            type="email"
-            name="email"
-            placeholder="seu@email.com"
-            icon={Mail}
-            autoComplete="email"
+            label="RM"
+            type="text"
+            name="rm"
+            value={rm}
+            onChange={handleRmChange}
+            inputMode="numeric"
+            pattern="[0-9]{5}"
+            maxLength={5}
+            minLength={5}
+            icon={Hash}
+            autoComplete="username"
             required
           />
 
@@ -72,16 +85,6 @@ export function LoginForm() {
           </Button>
         </form>
       </Card>
-
-      <p className="mt-8 text-center text-small text-muted">
-        Não tem uma conta?{" "}
-        <a
-          href="#"
-          className="font-medium text-primary-500 transition-colors duration-150 hover:text-primary-600"
-        >
-          Solicitar acesso
-        </a>
-      </p>
     </>
   );
 }

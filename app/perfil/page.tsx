@@ -13,6 +13,7 @@ const profile = {
   photo: "https://picsum.photos/seed/perfil/240/240",
   borrowedCount: 2,
   reviewsCount: 5,
+  favoritesCount: 3,
 };
 
 const historyItems = [
@@ -63,6 +64,24 @@ const reviewItems = [
   },
 ];
 
+const favoriteItems = [
+  {
+    title: "Jogos Vorazes",
+    author: "Suzanne Collins",
+    date: "12/05/2024",
+  },
+  {
+    title: "Harry Potter e a Pedra Filosofal",
+    author: "J.K. Rowling",
+    date: "02/05/2024",
+  },
+  {
+    title: "O Hobbit",
+    author: "J.R.R. Tolkien",
+    date: "18/04/2024",
+  },
+];
+
 function StarRating({ rating }: { rating: number }) {
   return (
     <div className="flex items-center gap-1 text-amber-500">
@@ -77,8 +96,10 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
+type ProfileTab = "history" | "reviews" | "favorites";
+
 export default function PerfilPage() {
-  const [activeTab, setActiveTab] = useState<"history" | "reviews">("history");
+  const [activeTab, setActiveTab] = useState<ProfileTab>("history");
 
   return (
     <div className="flex min-h-full flex-col bg-background">
@@ -106,7 +127,7 @@ export default function PerfilPage() {
                 </div>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-card border border-border bg-surface p-4 shadow-sm">
                   <p className="text-small text-muted">Livros emprestados</p>
                   <p className="mt-2 text-3xl font-semibold text-foreground">{profile.borrowedCount}</p>
@@ -114,6 +135,10 @@ export default function PerfilPage() {
                 <div className="rounded-card border border-border bg-surface p-4 shadow-sm">
                   <p className="text-small text-muted">Avaliações feitas</p>
                   <p className="mt-2 text-3xl font-semibold text-foreground">{profile.reviewsCount}</p>
+                </div>
+                <div className="rounded-card border border-border bg-surface p-4 shadow-sm">
+                  <p className="text-small text-muted">Favoritos</p>
+                  <p className="mt-2 text-3xl font-semibold text-foreground">{profile.favoritesCount}</p>
                 </div>
               </div>
             </div>
@@ -144,6 +169,17 @@ export default function PerfilPage() {
                 >
                   Minhas avaliações
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("favorites")}
+                  className={`rounded-button px-4 py-2 text-small font-medium transition-colors duration-150 ${
+                    activeTab === "favorites"
+                      ? "bg-primary-600 text-white"
+                      : "bg-background text-foreground hover:bg-surface-2"
+                  }`}
+                >
+                  Favoritos
+                </button>
               </div>
               <p className="text-small text-muted">Selecione uma aba para ver detalhes.</p>
             </div>
@@ -169,7 +205,7 @@ export default function PerfilPage() {
                   </div>
                 ))}
               </div>
-            ) : (
+            ) : activeTab === "reviews" ? (
               <div className="space-y-4 p-4">
                 {reviewItems.map((item) => (
                   <div
@@ -184,6 +220,27 @@ export default function PerfilPage() {
                       <StarRating rating={item.rating} />
                       <p className="text-small text-muted">{item.date}</p>
                     </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4 p-4">
+                {favoriteItems.map((item) => (
+                  <div
+                    key={item.title}
+                    className="flex flex-col gap-3 rounded-card border border-border bg-background p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <p className="text-body font-semibold text-foreground">{item.title}</p>
+                      <p className="text-small text-muted">{item.author}</p>
+                    </div>
+                    <div className="flex flex-col items-start gap-2 text-small text-muted sm:items-end">
+                      <span className="inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-medium text-primary-700">
+                        Favorito
+                      </span>
+                      <span>Adicionado em {item.date}</span>
+                    </div>
+                    <ChevronRight className="size-5 text-muted" aria-hidden />
                   </div>
                 ))}
               </div>

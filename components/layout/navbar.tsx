@@ -23,7 +23,7 @@ export const navItems = [
   { label: "Início", href: "/home", icon: Home },
   { label: "Catálogo", href: "/catalogo", icon: BookOpen },
   { label: "Reserva", href: "/reservas", icon: Bookmark },
-  { label: "Novidade", href: "#", icon: Newspaper },
+  { label: "Novidades", href: "/novidades", icon: Newspaper },
   { label: "Meu Perfil", href: "/perfil", icon: User },
 ] as const;
 

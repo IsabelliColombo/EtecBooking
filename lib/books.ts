@@ -82,5 +82,5 @@ export async function getBooksByCategory(
 
 export async function getFeaturedBooks(): Promise<Book[]> {
   const allBooks = await getAllBooks();
-  return allBooks.slice(0, 6);
+  return allBooks.slice(0, 5);
 }

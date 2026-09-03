@@ -1,74 +1,11 @@
 import { Suspense } from "react";
-import Image from "next/image";
-import { BookOpen, Heart, Search } from "lucide-react";
+import { BookOpen, Search } from "lucide-react";
+import { BooksGrid } from "@/components/books/books-grid";
 import { CategoryFilter } from "@/components/catalogo/category-filter";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { Input } from "@/components/ui/input";
 import { getBooksByCategory } from "@/lib/books";
-import { getBookCoverUrl, type Book } from "@/lib/mock-books";
-
-function CatalogBookCard({ book }: { book: Book }) {
-  const availabilityLabel = book.available ? "Disponível" : "Emprestado";
-  const demandLabel = book.available ? "Alta" : "Média";
-
-  return (
-    <article className="group overflow-hidden rounded-card border border-border bg-surface shadow-sm transition-shadow duration-150 hover:shadow-md">
-      <div className="relative overflow-hidden bg-surface-2">
-        <div className="absolute right-3 top-3 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition-colors duration-150 group-hover:bg-primary-50">
-          <Heart className="size-4 text-muted" aria-hidden />
-        </div>
-        <div className="relative aspect-[3/4] w-full">
-          <Image
-            src={getBookCoverUrl(book.coverSeed)}
-            alt={`Capa do livro ${book.title}`}
-            fill
-            className="object-cover"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3 p-4">
-        <div className="space-y-2">
-          <h3 className="line-clamp-2 text-body font-semibold text-foreground">
-            {book.title}
-          </h3>
-          <p className="text-small text-muted">{book.author}</p>
-        </div>
-
-        <span className="inline-flex rounded-full border border-border bg-surface-2 px-3 py-1 text-xs font-medium uppercase tracking-[0.08em] text-primary-700">
-          {book.category}
-        </span>
-
-        <div className="grid gap-3 text-small text-muted sm:grid-cols-2">
-          <div className="space-y-1">
-            <p className="font-medium text-foreground">Disponibilidade</p>
-            <p className="flex items-center gap-2">
-              <span
-                className={`size-2 inline-block rounded-full ${book.available ? "bg-success" : "bg-warning"}`}
-                aria-hidden
-              />
-              {availabilityLabel}
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <p className="font-medium text-foreground">Demanda</p>
-            <p className="flex items-center gap-2 text-error">{demandLabel}</p>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className="mt-auto inline-flex h-11 items-center justify-center rounded-button border border-border bg-primary-600 px-4 text-body font-medium text-white transition-colors duration-150 hover:bg-primary-700"
-        >
-          Ver detalhes
-        </button>
-      </div>
-    </article>
-  );
-}
 
 export default async function CatalogPage({
   searchParams,
@@ -140,11 +77,7 @@ export default async function CatalogPage({
               Nenhum livro encontrado para esta categoria.
             </p>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {books.map((book) => (
-                <CatalogBookCard key={book.id} book={book} />
-              ))}
-            </div>
+            <BooksGrid books={books} />
           )}
         </section>
       </main>

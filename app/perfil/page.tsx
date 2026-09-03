@@ -181,7 +181,7 @@ export default function PerfilPage() {
                   Favoritos
                 </button>
               </div>
-              <p className="text-small text-muted">Selecione uma aba para ver detalhes.</p>
+             
             </div>
 
             {activeTab === "history" ? (

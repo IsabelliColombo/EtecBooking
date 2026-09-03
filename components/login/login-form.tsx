@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 export function LoginForm() {
   const router = useRouter();
   const [rm, setRm] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleRmChange(event: React.ChangeEvent<HTMLInputElement>) {
     const digitsOnly = event.target.value.replace(/\D/g, "").slice(0, 5);
@@ -18,8 +19,8 @@ export function LoginForm() {
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (rm.length !== 5) return;
-    router.push("/home");
+    setIsSubmitting(true);
+    router.replace("/home");
   }
 
   return (
@@ -45,9 +46,8 @@ export function LoginForm() {
             value={rm}
             onChange={handleRmChange}
             inputMode="numeric"
-            pattern="[0-9]{5}"
             maxLength={5}
-            minLength={5}
+            placeholder="Digite seu RM"
             icon={Hash}
             autoComplete="username"
             required
@@ -80,8 +80,8 @@ export function LoginForm() {
             </a>
           </div>
 
-          <Button type="submit" className="w-full">
-            Entrar
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Entrando..." : "Entrar"}
           </Button>
         </form>
       </Card>

@@ -3,23 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { BookDetailsModal } from "@/components/books/book-details-modal";
-import { NovidadeCard } from "@/components/novidades/novidade-card";
-import {
-  novidadeToBook,
-  novidadesItems,
-  type NovidadeItem,
-} from "@/lib/novidades";
-import type { Book } from "@/lib/mock-books";
+import { BooksGrid } from "@/components/books/books-grid";
+import { novidadeToBook, novidadesItems } from "@/lib/novidades";
 import { cn } from "@/lib/cn";
 
 export function NovidadesContent() {
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const [activeFilter, setActiveFilter] = useState("todas");
-
-  function handleViewDetails(item: NovidadeItem) {
-    setSelectedBook(novidadeToBook(item));
-  }
+  const books = novidadesItems.map(novidadeToBook);
 
   return (
     <>
@@ -60,21 +50,7 @@ export function NovidadesContent() {
         </button>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-        {novidadesItems.map((item) => (
-          <NovidadeCard
-            key={item.id}
-            item={item}
-            onViewDetails={handleViewDetails}
-          />
-        ))}
-      </div>
-
-      <BookDetailsModal
-        book={selectedBook}
-        open={selectedBook !== null}
-        onClose={() => setSelectedBook(null)}
-      />
+      <BooksGrid books={books} />
     </>
   );
 }

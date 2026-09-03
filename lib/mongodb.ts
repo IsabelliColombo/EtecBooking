@@ -3,10 +3,15 @@ import { Collection, Db, MongoClient } from "mongodb";
 import type { BookDocument, ReservationDocument } from "@/lib/db/types";
 
 declare global {
-  var _mongoClientPromise: Promise<MongoClient> | undefined;
+  var _mongoClientPromiseFast: Promise<MongoClient> | undefined;
 }
 
 let clientPromise: Promise<MongoClient> | undefined;
+
+const mongoClientOptions = {
+  serverSelectionTimeoutMS: 1500,
+  connectTimeoutMS: 1500,
+};
 
 function getMongoUri() {
   const uri = process.env.MONGODB_URI;
@@ -26,16 +31,16 @@ function connect(): Promise<MongoClient> {
   const uri = getMongoUri();
 
   if (process.env.NODE_ENV === "development") {
-    if (!global._mongoClientPromise) {
-      const client = new MongoClient(uri);
-      global._mongoClientPromise = client.connect();
+    if (!global._mongoClientPromiseFast) {
+      const client = new MongoClient(uri, mongoClientOptions);
+      global._mongoClientPromiseFast = client.connect();
     }
 
-    return global._mongoClientPromise;
+    return global._mongoClientPromiseFast;
   }
 
   if (!clientPromise) {
-    const client = new MongoClient(uri);
+    const client = new MongoClient(uri, mongoClientOptions);
     clientPromise = client.connect();
   }
 

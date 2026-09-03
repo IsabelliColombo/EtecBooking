@@ -74,12 +74,3 @@ export function novidadeToBook(item: NovidadeItem): Book {
     synopsis: item.synopsis,
   };
 }
-
-export function formatNovidadeDate(dateString: string): string {
-  const date = new Date(`${dateString}T12:00:00`);
-  return new Intl.DateTimeFormat("pt-BR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(date);
-}

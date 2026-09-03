@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { BookOpen } from "lucide-react";
-import { BookCard } from "@/components/books/book-card";
-import { BookDetailsModal } from "@/components/books/book-details-modal";
+import { BooksGrid } from "@/components/books/books-grid";
 import { Button } from "@/components/ui/button";
 import type { Book } from "@/lib/mock-books";
 
@@ -12,8 +10,6 @@ interface FeaturedBooksSectionProps {
 }
 
 export function FeaturedBooksSection({ books }: FeaturedBooksSectionProps) {
-  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
-
   return (
     <section className="px-4 py-12 md:px-6 md:py-16">
       <div className="container mx-auto max-w-7xl">
@@ -36,23 +32,12 @@ export function FeaturedBooksSection({ books }: FeaturedBooksSectionProps) {
             Nenhum livro disponível no momento.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6 lg:grid-cols-6">
-            {books.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                onViewDetails={setSelectedBook}
-              />
-            ))}
-          </div>
+          <BooksGrid
+            books={books}
+            className="mx-auto max-w-6xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+          />
         )}
       </div>
-
-      <BookDetailsModal
-        book={selectedBook}
-        open={selectedBook !== null}
-        onClose={() => setSelectedBook(null)}
-      />
     </section>
   );
 }

@@ -12,57 +12,60 @@ type UserDocument = {
 const SESSION_COOKIE = "etecbooking_session";
 
 export async function POST(request: Request) {
-  const body = await request.json().catch(() => null);
+  try {
+    const body = await request.json().catch(() => null);
 
-  const rm = typeof body?.rm === "string" ? body.rm.trim() : "";
-  const password =
-    typeof body?.password === "string" ? body.password : "";
+    const rm = typeof body?.rm === "string" ? body.rm.trim() : "";
+    const password =
+      typeof body?.password === "string" ? body.password : "";
 
-  // Validação básica
-  if (!isValidRm(rm) || password.length === 0) {
+    if (!isValidRm(rm) || password.length === 0) {
+      return NextResponse.json(
+        { error: "RM e senha são obrigatórios." },
+        { status: 400 },
+      );
+    }
+
+    const database = await getDatabase();
+    const user = await database
+      .collection<UserDocument>("users")
+      .findOne({ rm });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: "RM ou senha inválidos." },
+        { status: 401 },
+      );
+    }
+
+    const passwordIsValid = await bcrypt.compare(password, user.password);
+
+    if (!passwordIsValid) {
+      return NextResponse.json(
+        { error: "RM ou senha inválidos." },
+        { status: 401 },
+      );
+    }
+
+    const response = NextResponse.json({ ok: true });
+
+    response.cookies.set(SESSION_COOKIE, rm, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    });
+
+    return response;
+  } catch (error) {
+    console.error("Erro no login:", error);
+
     return NextResponse.json(
-      { error: "RM e senha são obrigatórios." },
-      { status: 400 }
+      {
+        error:
+          "Não foi possível conectar ao banco de dados. Tente novamente em instantes.",
+      },
+      { status: 503 },
     );
   }
-
-  // Busca o usuário pelo RM
-  const database = await getDatabase();
-  const user = await database
-    .collection<UserDocument>("users")
-    .findOne({ rm });
-
-  // Não informa se o RM existe ou não
-  if (!user) {
-    return NextResponse.json(
-      { error: "RM ou senha inválidos." },
-      { status: 401 }
-    );
-  }
-
-  // Confere a senha armazenada com bcrypt
-  const passwordIsValid = await bcrypt.compare(
-    password,
-    user.password
-  );
-
-  if (!passwordIsValid) {
-    return NextResponse.json(
-      { error: "RM ou senha inválidos." },
-      { status: 401 }
-    );
-  }
-
-  // Login válido
-  const response = NextResponse.json({ ok: true });
-
-  // Cria a sessão
-  response.cookies.set(SESSION_COOKIE, rm, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-  });
-
-  return response;
 }

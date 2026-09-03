@@ -33,7 +33,10 @@ function connect(): Promise<MongoClient> {
   if (process.env.NODE_ENV === "development") {
     if (!global._mongoClientPromiseFast) {
       const client = new MongoClient(uri, mongoClientOptions);
-      global._mongoClientPromiseFast = client.connect();
+      global._mongoClientPromiseFast = client.connect().catch((error) => {
+        global._mongoClientPromiseFast = undefined;
+        throw error;
+      });
     }
 
     return global._mongoClientPromiseFast;
@@ -41,7 +44,10 @@ function connect(): Promise<MongoClient> {
 
   if (!clientPromise) {
     const client = new MongoClient(uri, mongoClientOptions);
-    clientPromise = client.connect();
+    clientPromise = client.connect().catch((error) => {
+      clientPromise = undefined;
+      throw error;
+    });
   }
 
   return clientPromise;

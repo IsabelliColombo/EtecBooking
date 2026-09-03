@@ -14,6 +14,7 @@
     "db:reset": "docker compose down -v"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "lucide-react": "^1.24.0",
     "mongodb": "6.21.0",
     "mongoose": "^9.9.0",

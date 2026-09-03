@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 export function LoginForm() {
   const router = useRouter();
   const [rm, setRm] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleRmChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -17,10 +19,29 @@ export function LoginForm() {
     setRm(digitsOnly);
   }
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (rm.length !== 5 || password.length === 0) return;
+
+    setError(null);
     setIsSubmitting(true);
-    router.replace("/home");
+
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rm, password }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Não foi possível entrar.");
+
+      router.push("/home");
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Não foi possível entrar.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -59,9 +80,13 @@ export function LoginForm() {
             name="password"
             placeholder="••••••••"
             icon={Lock}
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
             autoComplete="current-password"
             required
           />
+
+          {error && <p className="text-small text-red-600">{error}</p>}
 
           <div className="flex items-center justify-between">
             <label className="flex cursor-pointer items-center gap-2 text-small text-muted">

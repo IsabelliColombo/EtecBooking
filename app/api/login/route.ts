@@ -1,24 +1,13 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
+import {
+  SESSION_COOKIE,
+  SESSION_DURATION_MS,
+  type AlunoDocument,
+  type SessaoDocument,
+} from "@/lib/auth";
 import { getDatabase } from "@/lib/mongodb";
-
-type AlunoDocument = {
-  nome: string;
-  matricula: string;
-  email: string;
-  senhaHash?: string; // hash bcrypt, nunca a senha pura
-  ativo: boolean;
-};
-
-type SessaoDocument = {
-  token: string;
-  matricula: string;
-  expiraEm: Date;
-};
-
-const SESSION_COOKIE = "etecbooking_session";
-const SESSION_DURATION_MS = 1000 * 60 * 60 * 8; // 8 horas
 
 // hash falso, usado para gastar o mesmo tempo quando o aluno não existe
 const HASH_FALSO =
@@ -34,7 +23,7 @@ export async function POST(request: Request) {
     if (!/^\d{5}$/.test(matricula) || !senha) {
       return NextResponse.json(
         { error: "Matrícula e senha são obrigatórias." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -47,13 +36,13 @@ export async function POST(request: Request) {
     // compara sempre, mesmo se o aluno não existir (evita revelar quem existe)
     const senhaOk = await bcrypt.compare(
       senha,
-      aluno?.senhaHash ?? HASH_FALSO
+      aluno?.senhaHash ?? HASH_FALSO,
     );
 
     if (!aluno || !aluno.ativo || !aluno.senhaHash || !senhaOk) {
       return NextResponse.json(
         { error: "Matrícula ou senha inválidas." },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -87,7 +76,7 @@ export async function POST(request: Request) {
     console.error("Erro no login:", error);
     return NextResponse.json(
       { error: "Não foi possível conectar ao banco de dados." },
-      { status: 503 }
+      { status: 503 },
     );
   }
 }

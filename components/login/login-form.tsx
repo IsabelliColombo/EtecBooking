@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { BookOpen, Hash, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -99,22 +98,14 @@ export function LoginForm() {
             </p>
           )}
 
-          <div className="flex items-center justify-between">
-            <label className="flex cursor-pointer items-center gap-2 text-small text-muted">
-              <input
-                type="checkbox"
-                name="remember"
-                className="size-4 rounded border-border text-primary-500 focus:ring-primary-500/30"
-              />
-              Lembrar de mim
-            </label>
-            <Link
-              href="/primeiroacesso"
-              className="text-small font-medium text-primary-500 transition-colors duration-150 hover:text-primary-600"
-            >
-              Primeiro acesso
-            </Link>
-          </div>
+          <label className="flex cursor-pointer items-center gap-2 text-small text-muted">
+            <input
+              type="checkbox"
+              name="remember"
+              className="size-4 rounded border-border text-primary-500 focus:ring-primary-500/30"
+            />
+            Lembrar de mim
+          </label>
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Entrando..." : "Entrar"}

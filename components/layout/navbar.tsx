@@ -27,6 +27,11 @@ export const navItems = [
   { label: "Meu Perfil", href: "/perfil", icon: User },
 ] as const;
 
+type UsuarioNav = {
+  nome: string;
+  matricula: string;
+};
+
 function NavLink({
   label,
   href,
@@ -60,12 +65,46 @@ function NavLink({
   );
 }
 
+function primeiroNome(nome: string) {
+  return nome.trim().split(/\s+/)[0] || nome;
+}
+
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [usuario, setUsuario] = useState<UsuarioNav | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
     setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    let ativo = true;
+
+    async function carregarSessao() {
+      try {
+        const resposta = await fetch("/api/me");
+        if (!resposta.ok) {
+          if (ativo) setUsuario(null);
+          return;
+        }
+
+        const dados = await resposta.json();
+        if (ativo && typeof dados?.nome === "string") {
+          setUsuario({
+            nome: dados.nome,
+            matricula: String(dados.matricula ?? ""),
+          });
+        }
+      } catch {
+        if (ativo) setUsuario(null);
+      }
+    }
+
+    void carregarSessao();
+    return () => {
+      ativo = false;
+    };
   }, [pathname]);
 
   useEffect(() => {
@@ -92,6 +131,50 @@ export function Navbar() {
   function closeMenu() {
     setOpen(false);
   }
+
+  const acaoDesktop = usuario ? (
+    <Link
+      href="/perfil"
+      className={cn(
+        "hidden items-center gap-1.5 rounded-button px-3 py-2 text-small font-medium text-white lg:flex",
+        "cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:bg-primary-700/60",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
+      )}
+    >
+      <User className="size-4" aria-hidden />
+      {primeiroNome(usuario.nome)}
+    </Link>
+  ) : (
+    <Link
+      href="/login"
+      className={cn(
+        "hidden items-center gap-1.5 rounded-button px-3 py-2 text-small font-medium text-white lg:flex",
+        "cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:bg-primary-700/60",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
+      )}
+    >
+      <LogIn className="size-4" aria-hidden />
+      Entrar
+    </Link>
+  );
+
+  const acaoMobile = usuario ? (
+    <NavLink
+      label={primeiroNome(usuario.nome)}
+      href="/perfil"
+      icon={User}
+      onClick={closeMenu}
+      className="w-full"
+    />
+  ) : (
+    <NavLink
+      label="Entrar"
+      href="/login"
+      icon={LogIn}
+      onClick={closeMenu}
+      className="w-full"
+    />
+  );
 
   return (
     <header className="relative z-40 bg-surface">
@@ -127,17 +210,7 @@ export function Navbar() {
             ))}
           </ul>
 
-          <Link
-            href="/login"
-            className={cn(
-              "hidden items-center gap-1.5 rounded-button px-3 py-2 text-small font-medium text-white lg:flex",
-              "cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:bg-primary-700/60",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
-            )}
-          >
-            <LogIn className="size-4" aria-hidden />
-            Entrar
-          </Link>
+          {acaoDesktop}
 
           <button
             type="button"
@@ -191,15 +264,7 @@ export function Navbar() {
             ))}
           </ul>
 
-          <div className="border-t border-primary-700 px-4 py-4">
-            <NavLink
-              label="Entrar"
-              href="/login"
-              icon={LogIn}
-              onClick={closeMenu}
-              className="w-full"
-            />
-          </div>
+          <div className="border-t border-primary-700 px-4 py-4">{acaoMobile}</div>
         </div>
       </nav>
     </header>

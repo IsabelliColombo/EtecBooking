@@ -1,22 +1,23 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { getProfileByRm, isValidRm } from "@/lib/profile";
-
-const SESSION_COOKIE = "etecbooking_session";
+import { getCurrentProfile } from "@/lib/profile";
 
 export async function GET() {
-  const cookieStore = await cookies();
-  const rm = cookieStore.get(SESSION_COOKIE)?.value;
+  try {
+    const profile = await getCurrentProfile();
 
-  if (typeof rm !== "string" || !isValidRm(rm)) {
-    return NextResponse.json({ error: "Usuário não autenticado." }, { status: 401 });
+    if (!profile) {
+      return NextResponse.json(
+        { error: "Usuário não autenticado." },
+        { status: 401 },
+      );
+    }
+
+    return NextResponse.json(profile);
+  } catch (error) {
+    console.error("Erro ao carregar perfil:", error);
+    return NextResponse.json(
+      { error: "Não foi possível carregar o perfil." },
+      { status: 503 },
+    );
   }
-
-  const profile = await getProfileByRm(rm);
-
-  if (!profile) {
-    return NextResponse.json({ error: "Perfil não encontrado." }, { status: 404 });
-  }
-
-  return NextResponse.json(profile);
 }

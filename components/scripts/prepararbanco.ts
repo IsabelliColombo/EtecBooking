@@ -13,29 +13,16 @@ async function main() {
   await db.collection("sessoes").createIndex({ token: 1 }, { unique: true });
   await db.collection("alunos").createIndex({ matricula: 1 }, { unique: true });
 
-  // aluno de teste, SEM senha (ele cria a senha no primeiro acesso)
-  await db.collection("alunos").updateOne(
-    { matricula: "12345" },
-    {
-      $setOnInsert: {
-        nome: "Aluno Teste",
-        matricula: "12345",
-        email: "aluno.teste@email.com",
-        ativo: true,
-      },
-    },
-    { upsert: true }
-  );
-
   // aluno com senha pronta para validar o login
   const senhaHash = await bcrypt.hash("senha123", 10);
   await db.collection("alunos").updateOne(
     { matricula: "25055" },
     {
       $set: {
-        nome: "Aluno Validação",
+        nome: "Isabelli Colombo",
         matricula: "25055",
         email: "aluno.25055@email.com",
+        curso: "Desenvolvimento de Sistemas - 2º Módulo",
         senhaHash,
         ativo: true,
       },

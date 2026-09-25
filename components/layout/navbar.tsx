@@ -7,6 +7,7 @@ import {
   Bell,
   BookOpen,
   Bookmark,
+  CalendarDays,
   Home,
   LogIn,
   Menu,
@@ -24,6 +25,7 @@ export const navItems = [
   { label: "Catálogo", href: "/catalogo", icon: BookOpen },
   { label: "Reserva", href: "/reservas", icon: Bookmark },
   { label: "Novidades", href: "/novidades", icon: Newspaper },
+  { label: "Eventos", href: "/eventos", icon: CalendarDays },
   { label: "Meu Perfil", href: "/perfil", icon: User },
 ] as const;
 

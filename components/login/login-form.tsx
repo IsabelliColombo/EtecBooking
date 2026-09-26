@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import { BookOpen, Hash, Lock } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { getSafeRedirectPath } from "@/lib/auth-redirect";
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = getSafeRedirectPath(searchParams.get("next"));
+
   const [rm, setRm] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +42,7 @@ export function LoginForm() {
         throw new Error(data?.error ?? "Não foi possível entrar.");
       }
 
-      router.push("/home");
+      router.replace(redirectTo);
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -65,7 +69,11 @@ export function LoginForm() {
       </div>
 
       <Card padding="lg" className="shadow-lg">
-        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+        <form
+          className="flex flex-col gap-6"
+          method="post"
+          onSubmit={handleSubmit}
+        >
           <Input
             label="RM"
             type="text"

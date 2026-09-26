@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Star, ChevronRight } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { buildLoginHref } from "@/lib/auth-redirect";
 import type { ProfileRecord } from "@/lib/profile";
 
 function StarRating({ rating }: { rating: number }) {
@@ -32,6 +33,7 @@ function EmptyState({ message }: { message: string }) {
 
 export default function PerfilPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState<ProfileTab>("history");
   const [profile, setProfile] = useState<ProfileRecord | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,7 @@ export default function PerfilPage() {
         const resposta = await fetch("/api/perfil");
 
         if (resposta.status === 401) {
-          router.replace("/login");
+          router.replace(buildLoginHref(pathname));
           return;
         }
 
@@ -76,7 +78,7 @@ export default function PerfilPage() {
     return () => {
       ativo = false;
     };
-  }, [router]);
+  }, [router, pathname]);
 
   return (
     <div className="flex min-h-full flex-col bg-background">

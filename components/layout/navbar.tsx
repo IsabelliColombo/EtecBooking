@@ -18,6 +18,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { EtecLogo } from "@/components/layout/etec-logo";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { buildLoginHref } from "@/lib/auth-redirect";
 import { cn } from "@/lib/cn";
 
 export const navItems = [
@@ -134,6 +135,8 @@ export function Navbar() {
     setOpen(false);
   }
 
+  const loginHref = buildLoginHref(pathname);
+
   const acaoDesktop = usuario ? (
     <Link
       href="/perfil"
@@ -148,7 +151,7 @@ export function Navbar() {
     </Link>
   ) : (
     <Link
-      href="/login"
+      href={loginHref}
       className={cn(
         "hidden items-center gap-1.5 rounded-button px-3 py-2 text-small font-medium text-white lg:flex",
         "cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:bg-primary-700/60",
@@ -171,7 +174,7 @@ export function Navbar() {
   ) : (
     <NavLink
       label="Entrar"
-      href="/login"
+      href={loginHref}
       icon={LogIn}
       onClick={closeMenu}
       className="w-full"

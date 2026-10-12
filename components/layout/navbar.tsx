@@ -10,9 +10,9 @@ import {
   CalendarDays,
   Home,
   LogIn,
+  LogOut,
   Menu,
   Newspaper,
-  User,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -27,7 +27,6 @@ export const navItems = [
   { label: "Reserva", href: "/reservas", icon: Bookmark },
   { label: "Novidades", href: "/novidades", icon: Newspaper },
   { label: "Eventos", href: "/eventos", icon: CalendarDays },
-  { label: "Meu Perfil", href: "/perfil", icon: User },
 ] as const;
 
 type UsuarioNav = {
@@ -137,18 +136,30 @@ export function Navbar() {
 
   const loginHref = buildLoginHref(pathname);
 
+  async function sair() {
+    try {
+      await fetch("/api/logout", { method: "POST" });
+    } finally {
+      setUsuario(null);
+      setOpen(false);
+      window.location.assign("/login");
+    }
+  }
+
   const acaoDesktop = usuario ? (
-    <Link
-      href="/perfil"
-      className={cn(
-        "hidden items-center gap-1.5 rounded-button px-3 py-2 text-small font-medium text-white lg:flex",
-        "cursor-pointer transition-all duration-150 hover:scale-[1.02] hover:bg-primary-700/60",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
-      )}
-    >
-      <User className="size-4" aria-hidden />
-      {primeiroNome(usuario.nome)}
-    </Link>
+    <div className="hidden items-center gap-1 lg:flex">
+      <span className="px-3 py-2 text-small font-medium text-white">
+        {primeiroNome(usuario.nome)}
+      </span>
+      <button
+        type="button"
+        onClick={sair}
+        className="flex items-center gap-1.5 rounded-button px-3 py-2 text-small font-medium text-white transition-colors hover:bg-primary-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+      >
+        <LogOut className="size-4" aria-hidden />
+        Sair
+      </button>
+    </div>
   ) : (
     <Link
       href={loginHref}
@@ -164,13 +175,19 @@ export function Navbar() {
   );
 
   const acaoMobile = usuario ? (
-    <NavLink
-      label={primeiroNome(usuario.nome)}
-      href="/perfil"
-      icon={User}
-      onClick={closeMenu}
-      className="w-full"
-    />
+    <div className="flex flex-col gap-1">
+      <span className="px-3 py-2.5 text-small font-medium text-white">
+        {primeiroNome(usuario.nome)}
+      </span>
+      <button
+        type="button"
+        onClick={sair}
+        className="flex w-full items-center gap-2 rounded-button px-3 py-2.5 text-left text-small font-medium text-white transition-colors hover:bg-primary-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+      >
+        <LogOut className="size-4 shrink-0" aria-hidden />
+        Sair
+      </button>
+    </div>
   ) : (
     <NavLink
       label="Entrar"

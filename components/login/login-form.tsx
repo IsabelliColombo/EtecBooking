@@ -106,15 +106,6 @@ export function LoginForm() {
             </p>
           )}
 
-          <label className="flex cursor-pointer items-center gap-2 text-small text-muted">
-            <input
-              type="checkbox"
-              name="remember"
-              className="size-4 rounded border-border text-primary-500 focus:ring-primary-500/30"
-            />
-            Lembrar de mim
-          </label>
-
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Entrando..." : "Entrar"}
           </Button>

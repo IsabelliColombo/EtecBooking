@@ -5,13 +5,21 @@ import { CategoryFilter } from "@/components/catalogo/category-filter";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { Input } from "@/components/ui/input";
+import { getCurrentAluno } from "@/lib/auth";
+import { buildLoginHref } from "@/lib/auth-redirect";
 import { getBooksByCategory } from "@/lib/books";
+import { redirect } from "next/navigation";
 
 export default async function CatalogPage({
   searchParams,
 }: {
   searchParams: Promise<{ categoria?: string | string[] }>;
 }) {
+  const aluno = await getCurrentAluno();
+  if (!aluno) {
+    redirect(buildLoginHref("/catalogo"));
+  }
+
   const params = await searchParams;
   const categoriaParam = params.categoria;
   const category =

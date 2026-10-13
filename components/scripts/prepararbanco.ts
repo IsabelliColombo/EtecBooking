@@ -4,15 +4,6 @@ import { getDatabase } from "@/lib/mongodb";
 async function main() {
   const db = await getDatabase();
 
-  // apaga sessões vencidas automaticamente
-  await db
-    .collection("sessoes")
-    .createIndex({ expiraEm: 1 }, { expireAfterSeconds: 0 });
-
-  // token único e RM único
-  await db.collection("sessoes").createIndex({ token: 1 }, { unique: true });
-  await db.collection("alunos").createIndex({ matricula: 1 }, { unique: true });
-
   // aluno com senha pronta para validar o login
   const senhaHash = await bcrypt.hash("senha123", 10);
   await db.collection("alunos").updateOne(

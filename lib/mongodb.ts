@@ -7,6 +7,7 @@ declare global {
 }
 
 let clientPromise: Promise<MongoClient> | undefined;
+let indexesPromise: Promise<void> | undefined;
 
 const mongoClientOptions = {
   serverSelectionTimeoutMS: 1500,
@@ -59,7 +60,31 @@ export async function getMongoClient(): Promise<MongoClient> {
 
 export async function getDatabase(): Promise<Db> {
   const client = await connect();
-  return client.db(getDbName());
+  const database = client.db(getDbName());
+
+  if (!indexesPromise) {
+    indexesPromise = Promise.all([
+      database
+        .collection("sessoes")
+        .createIndex({ expiraEm: 1 }, { expireAfterSeconds: 0 }),
+      database.collection("sessoes").createIndex({ token: 1 }, { unique: true }),
+      database.collection("alunos").createIndex({ matricula: 1 }, { unique: true }),
+      database
+        .collection("login_rate_limits")
+        .createIndex({ key: 1 }, { unique: true }),
+      database
+        .collection("login_rate_limits")
+        .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+    ])
+      .then(() => undefined)
+      .catch((error) => {
+        indexesPromise = undefined;
+        throw error;
+      });
+  }
+
+  await indexesPromise;
+  return database;
 }
 
 export async function getBooksCollection(): Promise<Collection<BookDocument>> {

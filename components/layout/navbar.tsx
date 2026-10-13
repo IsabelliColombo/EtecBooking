@@ -13,6 +13,7 @@ import {
   LogOut,
   Menu,
   Newspaper,
+  UserRound,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -75,10 +76,6 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const [usuario, setUsuario] = useState<UsuarioNav | null>(null);
   const pathname = usePathname();
-
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
 
   useEffect(() => {
     let ativo = true;
@@ -148,9 +145,13 @@ export function Navbar() {
 
   const acaoDesktop = usuario ? (
     <div className="hidden items-center gap-1 lg:flex">
-      <span className="px-3 py-2 text-small font-medium text-white">
+      <Link
+        href="/perfil"
+        className="flex items-center gap-1.5 rounded-button px-3 py-2 text-small font-medium text-white transition-colors hover:bg-primary-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+      >
+        <UserRound className="size-4" aria-hidden />
         {primeiroNome(usuario.nome)}
-      </span>
+      </Link>
       <button
         type="button"
         onClick={sair}
@@ -176,9 +177,14 @@ export function Navbar() {
 
   const acaoMobile = usuario ? (
     <div className="flex flex-col gap-1">
-      <span className="px-3 py-2.5 text-small font-medium text-white">
+      <Link
+        href="/perfil"
+        onClick={closeMenu}
+        className="flex items-center gap-2 rounded-button px-3 py-2.5 text-small font-medium text-white transition-colors hover:bg-primary-700/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+      >
+        <UserRound className="size-4 shrink-0" aria-hidden />
         {primeiroNome(usuario.nome)}
-      </span>
+      </Link>
       <button
         type="button"
         onClick={sair}

@@ -8,6 +8,10 @@ import {
   type SessaoDocument,
 } from "@/lib/auth";
 import { getDatabase } from "@/lib/mongodb";
+import {
+  clearLoginRateLimit,
+  consumeLoginAttempt,
+} from "@/lib/login-rate-limit";
 
 // hash falso, usado para gastar o mesmo tempo quando o aluno não existe
 const HASH_FALSO =
@@ -28,6 +32,7 @@ export async function POST(request: Request) {
     }
 
     const database = await getDatabase();
+    const rateLimit = await consumeLoginAttempt(matricula);
 
     const aluno = await database
       .collection<AlunoDocument>("alunos")
@@ -40,11 +45,23 @@ export async function POST(request: Request) {
     );
 
     if (!aluno || !aluno.ativo || !aluno.senhaHash || !senhaOk) {
+      if (rateLimit.limited) {
+        return NextResponse.json(
+          { error: "Muitas tentativas. Aguarde e tente novamente." },
+          {
+            status: 429,
+            headers: { "Retry-After": String(rateLimit.retryAfterSeconds) },
+          },
+        );
+      }
+
       return NextResponse.json(
         { error: "Matrícula ou senha inválidas." },
         { status: 401 },
       );
     }
+
+    await clearLoginRateLimit(matricula);
 
     // cria sessão com token aleatório salvo no banco
     const token = randomBytes(32).toString("hex");

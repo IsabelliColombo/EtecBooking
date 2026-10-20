@@ -22,9 +22,13 @@ export async function GET(request: Request) {
 
   if (bookId) {
     const database = await getDatabase();
+    const bookQuery =
+      ObjectId.isValid(bookId) && bookId.length === 24
+        ? { _id: new ObjectId(bookId) }
+        : { id: bookId };
     const book = await database
       .collection<BookDocument>("books")
-      .find({ id: bookId })
+      .find(bookQuery)
       .sort({ available: -1 })
       .limit(1)
       .next();
@@ -58,10 +62,9 @@ export async function GET(request: Request) {
           { author: { $regex: pattern, $options: "i" } },
         ],
       },
-      { projection: { _id: 0, id: 1, title: 1, author: 1, available: 1 } },
+      { projection: { id: 1, title: 1, author: 1, available: 1 } },
     )
     .sort({ id: 1, available: -1, title: 1 })
-    .limit(100)
     .toArray();
 
   const booksByCatalogId = new Map<string, (typeof bookDocuments)[number]>();
@@ -127,7 +130,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json(
-      { error: "Ops, livro sendo usado no momento" },
+      { error: "LIVRO NÃO DISPONÍVEL" },
       { status: 409 },
     );
   }

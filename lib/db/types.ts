@@ -1,6 +1,8 @@
+import type { ObjectId } from "mongodb";
 import type { Book } from "@/lib/mock-books";
 
 export interface BookDocument extends Book {
+  _id: ObjectId;
   createdAt: Date;
   updatedAt: Date;
   activeReservationId?: string;

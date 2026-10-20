@@ -8,6 +8,7 @@
     "start": "node ./node_modules/next/dist/bin/next start",
     "lint": "eslint",
     "db:up": "docker compose up -d",
+    "db:seed": "node scripts/seed-hobbit.mjs",
     "db:down": "docker compose down",
     "db:logs": "docker compose logs -f mongodb",
     "db:ps": "docker compose ps",

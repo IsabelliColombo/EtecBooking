@@ -4,9 +4,11 @@ import { ObjectId } from "mongodb";
 import { BookOpen, CalendarDays, Heart, Star, UserRound } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
+import { BooksGrid } from "@/components/books/books-grid";
 import { getCurrentAluno } from "@/lib/auth";
 import { buildLoginHref } from "@/lib/auth-redirect";
 import type { BookDocument, ReservationDocument } from "@/lib/db/types";
+import type { Book } from "@/lib/mock-books";
 import { getDatabase } from "@/lib/mongodb";
 
 type FavoriteDocument = {
@@ -84,6 +86,37 @@ export default async function ProfilePage() {
       ]),
     ),
   ];
+  const favoriteObjectIds = favorites.flatMap((favorite) =>
+    ObjectId.isValid(favorite.bookId) && favorite.bookId.length === 24
+      ? [new ObjectId(favorite.bookId)]
+      : [],
+  );
+  const favoriteBookDocuments = favoriteObjectIds.length
+    ? await database
+        .collection<BookDocument>("books")
+        .find({ _id: { $in: favoriteObjectIds } })
+        .toArray()
+    : [];
+  const favoriteBooksById = new Map(
+    favoriteBookDocuments.map((book) => [book._id.toHexString(), book]),
+  );
+  const favoriteBooks: Book[] = favorites.flatMap((favorite) => {
+    const book = favoriteBooksById.get(favorite.bookId);
+    if (!book) return [];
+
+    return [
+      {
+        id: book.id,
+        databaseId: book._id.toHexString(),
+        title: book.title,
+        author: book.author,
+        category: book.category,
+        available: book.available,
+        coverSeed: book.coverSeed,
+        synopsis: book.synopsis,
+      },
+    ];
+  });
   const bookClauses = [
     ...(objectBookIds.length > 0 ? [{ _id: { $in: objectBookIds } }] : []),
     ...(catalogBookIds.length > 0 ? [{ id: { $in: catalogBookIds } }] : []),
@@ -162,27 +195,21 @@ export default async function ProfilePage() {
               <div className="mb-5 flex items-center gap-3">
                 <Heart className="size-5 text-primary-600" aria-hidden />
                 <h2 className="text-xl font-semibold text-foreground">Meus favoritos</h2>
-                <span className="ml-auto rounded-full bg-surface-2 px-3 py-1 text-small text-muted">
-                  {favorites.length}
-                </span>
               </div>
-              {favorites.length === 0 ? (
+              {favoriteBooks.length === 0 ? (
                 <p className="text-small text-muted">
                   Você ainda não tem livros favoritos.
                 </p>
               ) : (
-                <ul className="space-y-3">
-                  {favorites.map((favorite) => (
-                    <li
-                      key={favorite._id.toHexString()}
-                      className="rounded-card border border-border p-4"
-                    >
-                      <p className="font-medium text-foreground">
-                        {favorite.bookTitle ?? "Livro salvo"}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
+                <BooksGrid
+                  books={favoriteBooks}
+                  favoritesOnly
+                  compact
+                  initialFavoriteIds={favoriteBooks.flatMap((book) =>
+                    book.databaseId ? [book.databaseId] : [],
+                  )}
+                  className="grid-cols-1 gap-4 sm:grid-cols-2"
+                />
               )}
             </section>
 

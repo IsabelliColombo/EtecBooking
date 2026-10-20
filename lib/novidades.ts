@@ -1,7 +1,10 @@
+import { getDatabase } from "@/lib/mongodb";
 import type { Book } from "@/lib/mock-books";
+import type { BookDocument } from "@/lib/db/types";
 
 export interface NovidadeItem {
   id: string;
+  databaseId: string;
   title: string;
   author: string;
   coverSeed: string;
@@ -12,65 +15,53 @@ export interface NovidadeItem {
   synopsis: string;
 }
 
-export const novidadesItems: NovidadeItem[] = [
-  {
-    id: "nov-1",
-    title: "Jogos Vorazes",
-    author: "Suzanne Collins",
-    coverSeed: "jogos-vorazes",
-    category: "Ficção Científica",
-    genres: ["Ficção Científica", "Aventura"],
-    addedAt: "2024-05-10",
-    available: true,
-    synopsis:
-      "Em um futuro distópico, Katniss Everdeen é forçada a participar de um cruel jogo televisivo de sobrevivência.",
-  },
-  {
-    id: "nov-2",
-    title: "Em Chamas",
-    author: "Suzanne Collins",
-    coverSeed: "em-chamas",
-    category: "Ficção Científica",
-    genres: ["Ficção Científica", "Aventura"],
-    addedAt: "2024-05-08",
-    available: true,
-    synopsis:
-      "Katniss torna-se símbolo de resistência e precisa enfrentar novos desafios após vencer os Jogos Vorazes.",
-  },
-  {
-    id: "nov-3",
-    title: "Maze Runner: Correr ou Morrer",
-    author: "James Dashner",
-    coverSeed: "maze-runner",
-    category: "Ficção Científica",
-    genres: ["Ficção Científica", "Aventura"],
-    addedAt: "2024-05-05",
-    available: true,
-    synopsis:
-      "Thomas acorda em um labirinto sem memórias e precisa descobrir como escapar com outros adolescentes.",
-  },
-  {
-    id: "nov-4",
-    title: "Divergente",
-    author: "Veronica Roth",
-    coverSeed: "divergente",
-    category: "Ficção Científica",
-    genres: ["Ficção Científica", "Romance"],
-    addedAt: "2024-05-03",
-    available: true,
-    synopsis:
-      "Tris Prior descobre que não pertence a nenhuma facção em uma sociedade dividida e precisa esconder quem realmente é.",
-  },
-];
+type NovidadeDocument = BookDocument & {
+  genres?: string[];
+  addedAt?: Date;
+};
+
+export async function getNovidades(): Promise<NovidadeItem[]> {
+  try {
+    const books = (await getDatabase()).collection<NovidadeDocument>("books");
+    const documents = await books
+      .find({ addedAt: { $type: "date" } })
+      .sort({ addedAt: -1, title: 1 })
+      .toArray();
+
+    return documents.flatMap((document) => {
+      const novidade = document;
+      if (!(novidade.addedAt instanceof Date)) return [];
+
+      return [
+        {
+          id: novidade.id,
+          databaseId: novidade._id.toHexString(),
+          title: novidade.title,
+          author: novidade.author,
+          coverSeed: novidade.coverSeed,
+          category: novidade.category,
+          genres: novidade.genres ?? [],
+          addedAt: novidade.addedAt.toISOString().slice(0, 10),
+          available: novidade.available,
+          synopsis: novidade.synopsis,
+        },
+      ];
+    });
+  } catch (error) {
+    console.error("Não foi possível carregar as novidades do MongoDB.", error);
+    return [];
+  }
+}
 
 export function novidadeToBook(item: NovidadeItem): Book {
   return {
     id: item.id,
+    databaseId: item.databaseId,
     title: item.title,
     author: item.author,
+    coverSeed: item.coverSeed,
     category: item.category,
     available: item.available,
-    coverSeed: item.coverSeed,
     synopsis: item.synopsis,
   };
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -30,9 +30,11 @@ export function ReservationForm({
   const [results, setResults] = useState<ReservationBook[]>([]);
   const [selectedBook, setSelectedBook] = useState<ReservationBook | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [message, setMessage] = useState<Message>(null);
+  const availabilityControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!initialBookId) return;
@@ -54,7 +56,7 @@ export function ReservationForm({
         if (!data.book.available) {
           setMessage({
             kind: "error",
-            text: "Ops, livro sendo usado no momento",
+            text: "LIVRO NÃO DISPONÍVEL",
           });
         }
       } catch (error) {
@@ -70,7 +72,7 @@ export function ReservationForm({
   useEffect(() => {
     const query = search.trim();
 
-    if (!query || selectedBook?.title === query) return;
+    if (!query || selectedBook?.title === query || isCheckingAvailability) return;
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
@@ -106,15 +108,63 @@ export function ReservationForm({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [search, selectedBook]);
+  }, [search, selectedBook, isCheckingAvailability]);
 
   function handleSearchChange(value: string) {
+    availabilityControllerRef.current?.abort();
+    availabilityControllerRef.current = null;
     setSearch(value);
     setSelectedBook(null);
+    setIsCheckingAvailability(false);
     setResults([]);
     setIsSearching(Boolean(value.trim()));
     setMessage(null);
     setSearchError(null);
+  }
+
+  async function handleSelectBook(book: ReservationBook) {
+    availabilityControllerRef.current?.abort();
+    const controller = new AbortController();
+    availabilityControllerRef.current = controller;
+    setSearch(book.title);
+    setResults([]);
+    setSelectedBook(null);
+    setIsSearching(false);
+    setIsCheckingAvailability(true);
+    setSearchError(null);
+    setMessage(null);
+
+    try {
+      const response = await fetch(
+        `/api/reservas?bookId=${encodeURIComponent(book.id)}`,
+        { signal: controller.signal },
+      );
+      const data = await response.json();
+
+      if (!response.ok || !data.book) {
+        throw new Error(data.error ?? "Não foi possível consultar o livro.");
+      }
+
+      const livroAtual: ReservationBook = data.book;
+      setSelectedBook(livroAtual);
+      if (!livroAtual.available) {
+        setMessage({ kind: "error", text: "LIVRO NÃO DISPONÍVEL" });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") return;
+      setSearchError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível consultar o livro.",
+      );
+    } finally {
+      if (!controller.signal.aborted) {
+        setIsCheckingAvailability(false);
+        if (availabilityControllerRef.current === controller) {
+          availabilityControllerRef.current = null;
+        }
+      }
+    }
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -136,7 +186,7 @@ export function ReservationForm({
         setSelectedBook({ ...selectedBook, available: false });
         setMessage({
           kind: "error",
-          text: "Ops, livro sendo usado no momento",
+          text: "LIVRO NÃO DISPONÍVEL",
         });
         return;
       }
@@ -201,6 +251,11 @@ export function ReservationForm({
             />
 
             {isSearching && <p className="text-small text-muted">Buscando livros...</p>}
+            {isCheckingAvailability && (
+              <p className="text-small text-muted">
+                Consultando disponibilidade no banco de dados...
+              </p>
+            )}
             {searchError && (
               <p role="alert" className="text-small text-error">
                 {searchError}
@@ -214,21 +269,7 @@ export function ReservationForm({
                     key={book.id}
                     type="button"
                     className="flex w-full items-center justify-between gap-4 border-b border-border px-4 py-3 text-left transition-colors duration-150 last:border-b-0 hover:bg-primary-50"
-                    onClick={() => {
-                      setSelectedBook(book);
-                      setSearch(book.title);
-                      setResults([]);
-                      setIsSearching(false);
-                      setSearchError(null);
-                      setMessage(
-                        book.available
-                          ? null
-                          : {
-                              kind: "error",
-                              text: "Ops, livro sendo usado no momento",
-                            },
-                      );
-                    }}
+                    onClick={() => void handleSelectBook(book)}
                   >
                     <span>
                       <span className="block font-medium text-foreground">
@@ -251,6 +292,7 @@ export function ReservationForm({
             {!isSearching &&
               search.trim().length > 0 &&
               !selectedBook &&
+              !isCheckingAvailability &&
               results.length === 0 &&
               !searchError && (
                 <p className="text-small text-muted">Nenhum livro encontrado.</p>
@@ -281,7 +323,11 @@ export function ReservationForm({
             className="w-full"
             disabled={!selectedBook?.available || isSubmitting}
           >
-            {isSubmitting ? "Reservando..." : "Confirmar reserva"}
+            {isSubmitting
+              ? "Reservando..."
+              : isCheckingAvailability
+                ? "Verificando disponibilidade..."
+                : "Confirmar reserva"}
           </Button>
         </form>
 

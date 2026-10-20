@@ -4,12 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BooksGrid } from "@/components/books/books-grid";
-import { novidadeToBook, novidadesItems } from "@/lib/novidades";
+import type { Book } from "@/lib/mock-books";
 import { cn } from "@/lib/cn";
 
-export function NovidadesContent() {
+export function NovidadesContent({ books }: { books: Book[] }) {
   const [activeFilter, setActiveFilter] = useState("todas");
-  const books = novidadesItems.map(novidadeToBook);
 
   return (
     <>
@@ -50,7 +49,13 @@ export function NovidadesContent() {
         </button>
       </div>
 
-      <BooksGrid books={books} />
+      {books.length > 0 ? (
+        <BooksGrid books={books} />
+      ) : (
+        <p className="text-body text-muted">
+          Nenhuma novidade cadastrada no banco de dados.
+        </p>
+      )}
     </>
   );
 }

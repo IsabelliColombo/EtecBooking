@@ -1,10 +1,11 @@
 import type { BookDocument } from "@/lib/db/types";
 import { getBooksCollection } from "@/lib/mongodb";
-import { mockBooks, type Book } from "@/lib/mock-books";
+import type { Book } from "@/lib/mock-books";
 
 function toBook(document: BookDocument): Book {
   return {
     id: document.id,
+    databaseId: document._id.toHexString(),
     title: document.title,
     author: document.author,
     category: document.category,
@@ -27,30 +28,6 @@ function uniqueById(books: Book[]): Book[] {
   });
 }
 
-function filterMockBooks(category?: string | null): Book[] {
-  if (!category) {
-    return mockBooks;
-  }
-
-  return mockBooks.filter((book) => book.category === category);
-}
-
-function mergeWithMockBooks(books: Book[], category?: string | null): Book[] {
-  const uniqueBooks = uniqueById(books);
-  const existingIds = new Set(uniqueBooks.map((book) => book.id));
-  const extraBooks = filterMockBooks(category).filter(
-    (book) => !existingIds.has(book.id),
-  );
-
-  if (extraBooks.length === 0) {
-    return uniqueBooks;
-  }
-
-  return [...uniqueBooks, ...extraBooks].sort((a, b) =>
-    a.title.localeCompare(b.title, "pt-BR"),
-  );
-}
-
 export async function getAllBooks(): Promise<Book[]> {
   return getBooksByCategory(null);
 }
@@ -62,21 +39,10 @@ export async function getBooksByCategory(
     const books = await getBooksCollection();
     const query = category ? { category } : {};
     const documents = await books.find(query).sort({ title: 1 }).toArray();
-    const filteredBooks = uniqueById(documents.map(toBook));
-
-    if (filteredBooks.length === 0) {
-      return filterMockBooks(category);
-    }
-
-    const totalBooks = await books.countDocuments();
-    if (totalBooks < mockBooks.length) {
-      return mergeWithMockBooks(filteredBooks, category);
-    }
-
-    return filteredBooks;
+    return uniqueById(documents.map(toBook));
   } catch (error) {
-    console.warn("MongoDB indisponível, usando livros de exemplo.", error);
-    return filterMockBooks(category);
+    console.error("Não foi possível carregar livros do MongoDB.", error);
+    return [];
   }
 }
 

@@ -75,6 +75,9 @@ export async function getDatabase(): Promise<Db> {
       database
         .collection("login_rate_limits")
         .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+      database
+        .collection("favoritos")
+        .createIndex({ userId: 1, bookId: 1 }, { unique: true }),
     ])
       .then(() => undefined)
       .catch((error) => {

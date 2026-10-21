@@ -46,6 +46,20 @@ export async function getBooksByCategory(
   }
 }
 
+export async function getBookCategories(): Promise<string[]> {
+  try {
+    const books = await getBooksCollection();
+    const categories = await books.distinct("category");
+
+    return categories
+      .filter((category): category is string => typeof category === "string")
+      .sort((first, second) => first.localeCompare(second, "pt-BR"));
+  } catch (error) {
+    console.error("Não foi possível carregar as categorias do MongoDB.", error);
+    return [];
+  }
+}
+
 export async function getFeaturedBooks(): Promise<Book[]> {
   const allBooks = await getAllBooks();
   return allBooks.slice(0, 5);

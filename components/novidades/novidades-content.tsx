@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { BooksGrid } from "@/components/books/books-grid";
@@ -8,8 +7,6 @@ import type { Book } from "@/lib/mock-books";
 import { cn } from "@/lib/cn";
 
 export function NovidadesContent({ books }: { books: Book[] }) {
-  const [activeFilter, setActiveFilter] = useState("todas");
-
   return (
     <>
       <div className="mb-8 space-y-4">
@@ -32,21 +29,6 @@ export function NovidadesContent({ books }: { books: Book[] }) {
           <ArrowLeft className="size-4" aria-hidden />
           Voltar
         </Link>
-      </div>
-
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setActiveFilter("todas")}
-          className={cn(
-            "rounded-full px-5 py-2 text-small font-semibold transition-colors duration-150",
-            activeFilter === "todas"
-              ? "bg-primary-600 text-white"
-              : "border border-border bg-surface text-foreground hover:bg-surface-2",
-          )}
-        >
-          Todas
-        </button>
       </div>
 
       {books.length > 0 ? (

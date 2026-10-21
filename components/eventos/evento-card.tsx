@@ -30,7 +30,7 @@ export function EventoCard({ evento, onViewDetails, className }: EventoCardProps
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="space-y-1">
-          <p className="text-small text-muted">{evento.year}</p>
+          <p className="text-small text-muted">Evento disponível em breve</p>
           <h3 className="line-clamp-2 text-body font-semibold text-foreground">
             {evento.title}
           </h3>

@@ -25,7 +25,6 @@ export function BookCard({
   className,
 }: BookCardProps) {
   const availabilityLabel = book.available ? "Disponível" : "Emprestado";
-  const demandLabel = book.available ? "Alta" : "Média";
 
   return (
     <article
@@ -104,10 +103,6 @@ export function BookCard({
             </p>
           </div>
 
-          {!compact && <div className="space-y-1">
-            <p className="font-medium text-foreground">Demanda</p>
-            <p className="flex items-center gap-2 text-error">{demandLabel}</p>
-          </div>}
         </div>
 
         <button

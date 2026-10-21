@@ -1,7 +1,6 @@
 "use client";
 
 import { BookOpen, MapPin, Search, Bookmark } from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";

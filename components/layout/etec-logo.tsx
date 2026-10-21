@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/cn";
 
 interface EtecLogoProps {
@@ -8,7 +9,13 @@ interface EtecLogoProps {
 export function EtecLogo({ className, variant = "default" }: EtecLogoProps) {
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      <img src="/etec_sao_paulo.png" alt="Etec Logo" className="size-18" />
+      <Image
+        src="/etec_sao_paulo.png"
+        alt="Logo da Etec Prefeito Alberto Feres"
+        width={72}
+        height={72}
+        className="size-18 object-contain"
+      />
       <div className="flex flex-col">
         <span className="text-2xl leading-none font-bold tracking-tight text-[#1e3a5f]">
           Etec

@@ -80,7 +80,7 @@ export function EventoDetailsModal({
 
           <div className="flex flex-col gap-4 p-6">
             <div className="space-y-1">
-              <p className="text-small text-muted">{evento.year}</p>
+              <p className="text-small text-muted">Evento disponível em breve</p>
               <h2
                 id="evento-modal-title"
                 className="text-title font-semibold text-foreground"
@@ -95,10 +95,6 @@ export function EventoDetailsModal({
             <p className="text-body text-muted">{evento.description}</p>
 
             <dl className="grid gap-3 text-small">
-              <div>
-                <dt className="font-medium text-foreground">Data</dt>
-                <dd className="text-muted">{evento.dateLabel}</dd>
-              </div>
               <div>
                 <dt className="font-medium text-foreground">Local</dt>
                 <dd className="text-muted">{evento.location}</dd>

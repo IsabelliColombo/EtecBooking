@@ -1,8 +1,8 @@
 "use client";
 
 import { BookOpen } from "lucide-react";
+import Link from "next/link";
 import { BooksGrid } from "@/components/books/books-grid";
-import { Button } from "@/components/ui/button";
 import type { Book } from "@/lib/mock-books";
 
 interface FeaturedBooksSectionProps {
@@ -21,10 +21,15 @@ export function FeaturedBooksSection({ books }: FeaturedBooksSectionProps) {
             >
               <BookOpen className="size-5" />
             </div>
-            <h2 className="text-title text-foreground">Livros em Destaque</h2>
+            <h2 className="text-title text-foreground">Livros recomendados</h2>
           </div>
 
-          <Button className="w-fit rounded-full px-6">Ver todos</Button>
+          <Link
+            href="/catalogo"
+            className="inline-flex h-12 w-fit items-center justify-center rounded-full bg-primary-500 px-6 text-body font-medium text-white transition-colors duration-150 hover:bg-primary-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            Ver todos
+          </Link>
         </div>
 
         {books.length === 0 ? (

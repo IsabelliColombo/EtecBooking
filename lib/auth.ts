@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
 import { getDatabase } from "@/lib/mongodb";
 
@@ -15,10 +16,15 @@ export type AlunoDocument = {
 };
 
 export type SessaoDocument = {
-  token: string;
+  tokenHash: string;
   matricula: string;
   expiraEm: Date;
 };
+
+/** O token bruto fica somente no cookie do navegador; o Mongo guarda o SHA-256. */
+export function hashSessionToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
 
 export type AlunoPublico = {
   nome: string;
@@ -49,31 +55,26 @@ export async function getCurrentAluno(): Promise<AlunoPublico | null> {
     return null;
   }
 
-  try {
-    const database = await getDatabase();
-    const agora = new Date();
+  const database = await getDatabase();
+  const agora = new Date();
 
-    const sessao = await database.collection<SessaoDocument>("sessoes").findOne({
-      token,
-      expiraEm: { $gt: agora },
-    });
+  const sessao = await database.collection<SessaoDocument>("sessoes").findOne({
+    tokenHash: hashSessionToken(token),
+    expiraEm: { $gt: agora },
+  });
 
-    if (!sessao) {
-      return null;
-    }
-
-    const aluno = await database.collection<AlunoDocument>("alunos").findOne({
-      matricula: sessao.matricula,
-      ativo: true,
-    });
-
-    if (!aluno) {
-      return null;
-    }
-
-    return toAlunoPublico(aluno);
-  } catch (error) {
-    console.error("Erro ao validar sessão:", error);
+  if (!sessao) {
     return null;
   }
+
+  const aluno = await database.collection<AlunoDocument>("alunos").findOne({
+    matricula: sessao.matricula,
+    ativo: true,
+  });
+
+  if (!aluno) {
+    return null;
+  }
+
+  return toAlunoPublico(aluno);
 }

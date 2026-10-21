@@ -1,8 +1,11 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { EventosContent } from "@/components/eventos/eventos-content";
+import { requireAluno } from "@/lib/require-aluno";
 
-export default function EventosPage() {
+export default async function EventosPage() {
+  await requireAluno("/eventos");
+
   return (
     <div className="flex min-h-full flex-col bg-background">
       <Navbar />

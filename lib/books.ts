@@ -35,29 +35,19 @@ export async function getAllBooks(): Promise<Book[]> {
 export async function getBooksByCategory(
   category?: string | null,
 ): Promise<Book[]> {
-  try {
-    const books = await getBooksCollection();
-    const query = category ? { category } : {};
-    const documents = await books.find(query).sort({ title: 1 }).toArray();
-    return uniqueById(documents.map(toBook));
-  } catch (error) {
-    console.error("Não foi possível carregar livros do MongoDB.", error);
-    return [];
-  }
+  const books = await getBooksCollection();
+  const query = category ? { category } : {};
+  const documents = await books.find(query).sort({ title: 1 }).toArray();
+  return uniqueById(documents.map(toBook));
 }
 
 export async function getBookCategories(): Promise<string[]> {
-  try {
-    const books = await getBooksCollection();
-    const categories = await books.distinct("category");
+  const books = await getBooksCollection();
+  const categories = await books.distinct("category");
 
-    return categories
-      .filter((category): category is string => typeof category === "string")
-      .sort((first, second) => first.localeCompare(second, "pt-BR"));
-  } catch (error) {
-    console.error("Não foi possível carregar as categorias do MongoDB.", error);
-    return [];
-  }
+  return categories
+    .filter((category): category is string => typeof category === "string")
+    .sort((first, second) => first.localeCompare(second, "pt-BR"));
 }
 
 export async function getFeaturedBooks(): Promise<Book[]> {

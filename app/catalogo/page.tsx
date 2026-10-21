@@ -2,20 +2,15 @@ import { BookOpen } from "lucide-react";
 import { CatalogBooks } from "@/components/catalogo/catalog-books";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
-import { getCurrentAluno } from "@/lib/auth";
-import { buildLoginHref } from "@/lib/auth-redirect";
 import { getBookCategories, getBooksByCategory } from "@/lib/books";
-import { redirect } from "next/navigation";
+import { requireAluno } from "@/lib/require-aluno";
 
 export default async function CatalogPage({
   searchParams,
 }: {
   searchParams: Promise<{ categoria?: string | string[] }>;
 }) {
-  const aluno = await getCurrentAluno();
-  if (!aluno) {
-    redirect(buildLoginHref("/catalogo"));
-  }
+  await requireAluno("/catalogo");
 
   const params = await searchParams;
   const categoriaParam = params.categoria;

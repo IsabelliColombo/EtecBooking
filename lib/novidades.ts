@@ -21,36 +21,31 @@ type NovidadeDocument = BookDocument & {
 };
 
 export async function getNovidades(): Promise<NovidadeItem[]> {
-  try {
-    const books = (await getDatabase()).collection<NovidadeDocument>("books");
-    const documents = await books
-      .find({ addedAt: { $type: "date" } })
-      .sort({ addedAt: -1, title: 1 })
-      .toArray();
+  const books = (await getDatabase()).collection<NovidadeDocument>("books");
+  const documents = await books
+    .find({ addedAt: { $type: "date" } })
+    .sort({ addedAt: -1, title: 1 })
+    .toArray();
 
-    return documents.flatMap((document) => {
-      const novidade = document;
-      if (!(novidade.addedAt instanceof Date)) return [];
+  return documents.flatMap((document) => {
+    const novidade = document;
+    if (!(novidade.addedAt instanceof Date)) return [];
 
-      return [
-        {
-          id: novidade.id,
-          databaseId: novidade._id.toHexString(),
-          title: novidade.title,
-          author: novidade.author,
-          coverSeed: novidade.coverSeed,
-          category: novidade.category,
-          genres: novidade.genres ?? [],
-          addedAt: novidade.addedAt.toISOString().slice(0, 10),
-          available: novidade.available,
-          synopsis: novidade.synopsis,
-        },
-      ];
-    });
-  } catch (error) {
-    console.error("Não foi possível carregar as novidades do MongoDB.", error);
-    return [];
-  }
+    return [
+      {
+        id: novidade.id,
+        databaseId: novidade._id.toHexString(),
+        title: novidade.title,
+        author: novidade.author,
+        coverSeed: novidade.coverSeed,
+        category: novidade.category,
+        genres: novidade.genres ?? [],
+        addedAt: novidade.addedAt.toISOString().slice(0, 10),
+        available: novidade.available,
+        synopsis: novidade.synopsis,
+      },
+    ];
+  });
 }
 
 export function novidadeToBook(item: NovidadeItem): Book {

@@ -2,8 +2,10 @@ import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { NovidadesContent } from "@/components/novidades/novidades-content";
 import { getNovidades, novidadeToBook } from "@/lib/novidades";
+import { requireAluno } from "@/lib/require-aluno";
 
 export default async function NovidadesPage() {
+  await requireAluno("/novidades");
   const novidades = (await getNovidades()).map(novidadeToBook);
 
   return (

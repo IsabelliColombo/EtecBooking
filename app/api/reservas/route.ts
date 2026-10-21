@@ -4,12 +4,13 @@ import { NextResponse } from "next/server";
 import { getCurrentAluno } from "@/lib/auth";
 import type { BookDocument, ReservationDocument } from "@/lib/db/types";
 import { getDatabase } from "@/lib/mongodb";
+import { withApiErrors } from "@/lib/api-error";
 
 function escapeRegex(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-export async function GET(request: Request) {
+async function getReservations(request: Request) {
   const aluno = await getCurrentAluno();
 
   if (!aluno) {
@@ -87,7 +88,7 @@ export async function GET(request: Request) {
   });
 }
 
-export async function POST(request: Request) {
+async function createReservation(request: Request) {
   const aluno = await getCurrentAluno();
 
   if (!aluno) {
@@ -174,3 +175,6 @@ export async function POST(request: Request) {
     { status: 201 },
   );
 }
+
+export const GET = withApiErrors(getReservations);
+export const POST = withApiErrors(createReservation);

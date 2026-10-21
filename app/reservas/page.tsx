@@ -1,20 +1,14 @@
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { ReservationForm } from "@/components/reservas/reservation-form";
-import { getCurrentAluno } from "@/lib/auth";
-import { buildLoginHref } from "@/lib/auth-redirect";
-import { redirect } from "next/navigation";
+import { requireAluno } from "@/lib/require-aluno";
 
 export default async function ReservationPage({
   searchParams,
 }: {
   searchParams: Promise<{ bookId?: string | string[] }>;
 }) {
-  const aluno = await getCurrentAluno();
-
-  if (!aluno) {
-    redirect(buildLoginHref("/reservas"));
-  }
+  const aluno = await requireAluno("/reservas");
 
   const params = await searchParams;
   const bookId = typeof params.bookId === "string" ? params.bookId : "";

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Bell,
@@ -33,6 +33,14 @@ export const navItems = [
 type UsuarioNav = {
   nome: string;
   matricula: string;
+};
+
+type NotificacaoNav = {
+  id: string;
+  bookId: string;
+  bookTitle: string;
+  status: "unread" | "read";
+  notifiedAt: string | null;
 };
 
 function NavLink({
@@ -75,7 +83,11 @@ function primeiroNome(nome: string) {
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [usuario, setUsuario] = useState<UsuarioNav | null>(null);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificacaoNav[]>([]);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     let ativo = true;
@@ -105,6 +117,61 @@ export function Navbar() {
       ativo = false;
     };
   }, [pathname]);
+
+  useEffect(() => {
+    if (!usuario) return;
+
+    let ativo = true;
+    let carregando = false;
+
+    async function carregarNotificacoes() {
+      if (carregando) return;
+      carregando = true;
+
+      try {
+        const resposta = await fetch("/api/notificacoes", { cache: "no-store" });
+        if (!resposta.ok) return;
+
+        const dados = await resposta.json();
+        if (!ativo) return;
+
+        if (Array.isArray(dados.notifications)) {
+          setNotifications(
+            dados.notifications.filter(
+              (item: NotificacaoNav) =>
+                typeof item.id === "string" &&
+                typeof item.bookId === "string" &&
+                typeof item.bookTitle === "string" &&
+                (item.status === "unread" || item.status === "read"),
+            ),
+          );
+        }
+        setUnreadNotificationCount(
+          Number.isFinite(dados.unreadCount) ? dados.unreadCount : 0,
+        );
+      } catch {
+        // Mantém as notificações já carregadas se houver uma falha temporária.
+      } finally {
+        carregando = false;
+      }
+    }
+
+    function atualizarSeVisivel() {
+      if (document.visibilityState === "visible") {
+        void carregarNotificacoes();
+      }
+    }
+
+    void carregarNotificacoes();
+    const intervalo = window.setInterval(atualizarSeVisivel, 30_000);
+    document.addEventListener("visibilitychange", atualizarSeVisivel);
+
+    return () => {
+      ativo = false;
+      window.clearInterval(intervalo);
+      document.removeEventListener("visibilitychange", atualizarSeVisivel);
+    };
+  }, [usuario]);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
@@ -138,9 +205,38 @@ export function Navbar() {
       await fetch("/api/logout", { method: "POST" });
     } finally {
       setUsuario(null);
+      setNotifications([]);
+      setUnreadNotificationCount(0);
+      setNotificationsOpen(false);
       setOpen(false);
       window.location.assign("/login");
     }
+  }
+
+  async function abrirNotificacao(notificacao: NotificacaoNav) {
+    if (notificacao.status === "unread") {
+      try {
+        const resposta = await fetch("/api/notificacoes", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ notificationId: notificacao.id }),
+        });
+
+        if (resposta.ok) {
+          setNotifications((atuais) =>
+            atuais.map((item) =>
+              item.id === notificacao.id ? { ...item, status: "read" } : item,
+            ),
+          );
+          setUnreadNotificationCount((atual) => Math.max(0, atual - 1));
+        }
+      } catch {
+        // A navegação ainda funciona mesmo se não for possível marcar como lida.
+      }
+    }
+
+    setNotificationsOpen(false);
+    router.push(`/reservas?bookId=${encodeURIComponent(notificacao.bookId)}`);
   }
 
   const acaoDesktop = usuario ? (
@@ -209,13 +305,81 @@ export function Navbar() {
       <div className="container mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 md:px-6">
         <EtecLogo />
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-button border border-border bg-surface text-foreground transition-colors duration-150 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30"
-            aria-label="Notificações"
-          >
-            <Bell className="size-5" aria-hidden />
-          </button>
+          {usuario && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setNotificationsOpen((atual) => !atual)}
+                className="relative inline-flex h-11 w-11 items-center justify-center rounded-button border border-border bg-surface text-foreground transition-colors duration-150 hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/30"
+                aria-label={
+                  unreadNotificationCount > 0
+                    ? `Notificações, ${unreadNotificationCount} não lidas`
+                    : "Notificações"
+                }
+                aria-expanded={notificationsOpen}
+                aria-controls="student-notifications"
+              >
+                <Bell className="size-5" aria-hidden />
+                {unreadNotificationCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold text-white">
+                    {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+                  </span>
+                )}
+              </button>
+
+              {notificationsOpen && (
+                <section
+                  id="student-notifications"
+                  aria-label="Notificações do aluno"
+                  className="absolute top-full right-0 z-50 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden rounded-card border border-border bg-surface shadow-lg"
+                >
+                  <div className="border-b border-border px-4 py-3">
+                    <h2 className="font-semibold text-foreground">Notificações</h2>
+                    <p className="text-xs text-muted">
+                      Avisos de disponibilidade dos livros
+                    </p>
+                  </div>
+
+                  {notifications.length === 0 ? (
+                    <p className="px-4 py-5 text-small text-muted">
+                      Nenhuma notificação por enquanto.
+                    </p>
+                  ) : (
+                    <ul className="max-h-80 overflow-y-auto">
+                      {notifications.map((notificacao) => (
+                        <li key={notificacao.id} className="border-b border-border last:border-b-0">
+                          <button
+                            type="button"
+                            onClick={() => void abrirNotificacao(notificacao)}
+                            className="flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500/40"
+                          >
+                            <span
+                              className={`mt-1.5 size-2 shrink-0 rounded-full ${
+                                notificacao.status === "unread" ? "bg-primary-600" : "bg-border"
+                              }`}
+                              aria-hidden
+                            />
+                            <span>
+                              <span className="block text-small font-medium text-foreground">
+                                {notificacao.bookTitle} está disponível.
+                              </span>
+                              <span className="mt-1 block text-xs text-muted">
+                                Toque para consultar e tentar reservar.
+                              </span>
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
+                  <p className="border-t border-border px-4 py-2 text-xs text-muted">
+                    O aviso não reserva o livro automaticamente.
+                  </p>
+                </section>
+              )}
+            </div>
+          )}
           <ThemeToggle />
         </div>
       </div>

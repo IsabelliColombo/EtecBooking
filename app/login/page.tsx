@@ -1,8 +1,14 @@
 import { Suspense } from "react";
 import { LoginForm } from "@/components/login/login-form";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { getCurrentAluno } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  if (await getCurrentAluno()) {
+    redirect("/home");
+  }
+
   return (
     <main className="relative flex min-h-screen flex-1 items-center justify-center overflow-hidden bg-background px-4 py-12">
       <div

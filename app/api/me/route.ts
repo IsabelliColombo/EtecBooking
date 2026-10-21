@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getCurrentAluno } from "@/lib/auth";
+import { withApiErrors } from "@/lib/api-error";
 
-export async function GET() {
+async function getMe() {
   const aluno = await getCurrentAluno();
 
   if (!aluno) {
@@ -13,3 +14,5 @@ export async function GET() {
     matricula: aluno.matricula,
   });
 }
+
+export const GET = withApiErrors(getMe);

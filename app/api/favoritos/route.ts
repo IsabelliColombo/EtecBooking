@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getCurrentAluno } from "@/lib/auth";
 import type { BookDocument } from "@/lib/db/types";
 import { getDatabase } from "@/lib/mongodb";
+import { withApiErrors } from "@/lib/api-error";
 
 type FavoriteDocument = {
   userId: string;
@@ -12,7 +13,7 @@ type FavoriteDocument = {
   createdAt: Date;
 };
 
-export async function GET() {
+async function getFavorites() {
   const aluno = await getCurrentAluno();
 
   if (!aluno) {
@@ -31,7 +32,7 @@ export async function GET() {
   );
 }
 
-export async function POST(request: Request) {
+async function updateFavorite(request: Request) {
   const aluno = await getCurrentAluno();
 
   if (!aluno) {
@@ -81,3 +82,6 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ bookId, favorite });
 }
+
+export const GET = withApiErrors(getFavorites);
+export const POST = withApiErrors(updateFavorite);

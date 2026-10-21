@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { SESSION_COOKIE, type SessaoDocument } from "@/lib/auth";
+import { hashSessionToken, SESSION_COOKIE, type SessaoDocument } from "@/lib/auth";
 import { getDatabase } from "@/lib/mongodb";
 
 export async function POST() {
@@ -10,7 +10,9 @@ export async function POST() {
   if (token) {
     try {
       const database = await getDatabase();
-      await database.collection<SessaoDocument>("sessoes").deleteOne({ token });
+      await database
+        .collection<SessaoDocument>("sessoes")
+        .deleteOne({ tokenHash: hashSessionToken(token) });
     } catch (error) {
       console.error("Erro ao encerrar sessão:", error);
     }

@@ -5,6 +5,7 @@ import {
   SESSION_COOKIE,
   SESSION_DURATION_MS,
   type AlunoDocument,
+  hashSessionToken,
   type SessaoDocument,
 } from "@/lib/auth";
 import { getDatabase } from "@/lib/mongodb";
@@ -63,13 +64,17 @@ export async function POST(request: Request) {
 
     await clearLoginRateLimit(matricula);
 
-    // cria sessão com token aleatório salvo no banco
+    // O token bruto é enviado somente ao cookie; o banco recebe apenas o hash.
     const token = randomBytes(32).toString("hex");
     const expiraEm = new Date(Date.now() + SESSION_DURATION_MS);
 
     await database
       .collection<SessaoDocument>("sessoes")
-      .insertOne({ token, matricula: aluno.matricula, expiraEm });
+      .insertOne({
+        tokenHash: hashSessionToken(token),
+        matricula: aluno.matricula,
+        expiraEm,
+      });
 
     const response = NextResponse.json({
       ok: true,

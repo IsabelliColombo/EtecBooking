@@ -1,4 +1,5 @@
 import { Collection, Db, MongoClient } from "mongodb";
+import { createHash } from "node:crypto";
 
 import type { BookDocument, ReservationDocument } from "@/lib/db/types";
 
@@ -8,6 +9,35 @@ declare global {
 
 let clientPromise: Promise<MongoClient> | undefined;
 let indexesPromise: Promise<void> | undefined;
+
+async function migrateLegacySessions(database: Db): Promise<void> {
+  const sessions = database.collection("sessoes");
+  const collectionExists = await database
+    .listCollections({ name: "sessoes" }, { nameOnly: true })
+    .hasNext();
+  if (!collectionExists) return;
+
+  const existingIndexes = await sessions.listIndexes().toArray();
+
+  // Remove the old unique index before unsetting its field on migrated records.
+  if (existingIndexes.some((index) => index.name === "token_1")) {
+    await sessions.dropIndex("token_1");
+  }
+
+  const legacySessions = await sessions
+    .find({ token: { $type: "string" } }, { projection: { token: 1 } })
+    .toArray();
+
+  for (const session of legacySessions) {
+    if (typeof session.token !== "string") continue;
+
+    const tokenHash = createHash("sha256").update(session.token).digest("hex");
+    await sessions.updateOne(
+      { _id: session._id, token: session.token },
+      { $set: { tokenHash }, $unset: { token: "" } },
+    );
+  }
+}
 
 const mongoClientOptions = {
   serverSelectionTimeoutMS: 1500,
@@ -63,27 +93,43 @@ export async function getDatabase(): Promise<Db> {
   const database = client.db(getDbName());
 
   if (!indexesPromise) {
-    indexesPromise = Promise.all([
-      database
-        .collection("sessoes")
-        .createIndex({ expiraEm: 1 }, { expireAfterSeconds: 0 }),
-      database.collection("sessoes").createIndex({ token: 1 }, { unique: true }),
-      database.collection("alunos").createIndex({ matricula: 1 }, { unique: true }),
-      database
-        .collection("login_rate_limits")
-        .createIndex({ key: 1 }, { unique: true }),
-      database
-        .collection("login_rate_limits")
-        .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
-      database
-        .collection("favoritos")
-        .createIndex({ userId: 1, bookId: 1 }, { unique: true }),
-    ])
-      .then(() => undefined)
-      .catch((error) => {
-        indexesPromise = undefined;
-        throw error;
-      });
+    indexesPromise = (async () => {
+      const sessions = database.collection("sessoes");
+      await migrateLegacySessions(database);
+
+      await Promise.all([
+        sessions.createIndex({ expiraEm: 1 }, { expireAfterSeconds: 0 }),
+        sessions.createIndex({ tokenHash: 1 }, { unique: true }),
+        database
+          .collection("alunos")
+          .createIndex({ matricula: 1 }, { unique: true }),
+        database
+          .collection("login_rate_limits")
+          .createIndex({ key: 1 }, { unique: true }),
+        database
+          .collection("login_rate_limits")
+          .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }),
+        database
+          .collection("favoritos")
+          .createIndex({ userId: 1, bookId: 1 }, { unique: true }),
+        database
+          .collection("notificacoes")
+          .createIndex(
+            { userId: 1, bookId: 1 },
+            {
+              unique: true,
+              partialFilterExpression: { status: "waiting" },
+              name: "one_waiting_availability_notification_per_book_and_user",
+            },
+          ),
+        database
+          .collection("notificacoes")
+          .createIndex({ userId: 1, status: 1, notifiedAt: -1 }),
+      ]);
+    })().catch((error) => {
+      indexesPromise = undefined;
+      throw error;
+    });
   }
 
   await indexesPromise;

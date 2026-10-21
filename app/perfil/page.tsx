@@ -1,12 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { ObjectId } from "mongodb";
 import { BookOpen, CalendarDays, Heart, Star, UserRound } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { BooksGrid } from "@/components/books/books-grid";
-import { getCurrentAluno } from "@/lib/auth";
-import { buildLoginHref } from "@/lib/auth-redirect";
+import { requireAluno } from "@/lib/require-aluno";
 import type { BookDocument, ReservationDocument } from "@/lib/db/types";
 import type { Book } from "@/lib/mock-books";
 import { getDatabase } from "@/lib/mongodb";
@@ -43,11 +41,7 @@ function formatDate(date: Date) {
 }
 
 export default async function ProfilePage() {
-  const aluno = await getCurrentAluno();
-
-  if (!aluno) {
-    redirect(buildLoginHref("/perfil"));
-  }
+  const aluno = await requireAluno("/perfil");
 
   const database = await getDatabase();
   const [reservations, favorites, reviews] = await Promise.all([

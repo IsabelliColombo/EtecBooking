@@ -32,7 +32,11 @@ export function ReservationForm({
   const [isSearching, setIsSearching] = useState(false);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUpdatingAvailabilityAlert, setIsUpdatingAvailabilityAlert] = useState(false);
+  const [isSubscribedForAvailability, setIsSubscribedForAvailability] = useState(false);
+  const [reservationSucceeded, setReservationSucceeded] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  const [availabilityAlertError, setAvailabilityAlertError] = useState<string | null>(null);
   const [message, setMessage] = useState<Message>(null);
   const availabilityControllerRef = useRef<AbortController | null>(null);
 
@@ -68,6 +72,39 @@ export function ReservationForm({
     void loadInitialBook();
     return () => controller.abort();
   }, [initialBookId]);
+
+  useEffect(() => {
+    if (!selectedBook || selectedBook.available || reservationSucceeded) return;
+
+    const selectedBookId = selectedBook.id;
+    const controller = new AbortController();
+
+    async function loadAvailabilityAlert() {
+      try {
+        const response = await fetch(
+          `/api/notificacoes?bookId=${encodeURIComponent(selectedBookId)}`,
+          { signal: controller.signal, cache: "no-store" },
+        );
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error ?? "Não foi possível consultar seus avisos.");
+        }
+
+        setIsSubscribedForAvailability(data.isSubscribed === true);
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setAvailabilityAlertError(
+          error instanceof Error
+            ? error.message
+            : "Não foi possível consultar seus avisos.",
+        );
+      }
+    }
+
+    void loadAvailabilityAlert();
+    return () => controller.abort();
+  }, [selectedBook, reservationSucceeded]);
 
   useEffect(() => {
     const query = search.trim();
@@ -115,11 +152,14 @@ export function ReservationForm({
     availabilityControllerRef.current = null;
     setSearch(value);
     setSelectedBook(null);
+    setIsSubscribedForAvailability(false);
+    setReservationSucceeded(false);
     setIsCheckingAvailability(false);
     setResults([]);
     setIsSearching(Boolean(value.trim()));
     setMessage(null);
     setSearchError(null);
+    setAvailabilityAlertError(null);
   }
 
   async function handleSelectBook(book: ReservationBook) {
@@ -129,10 +169,13 @@ export function ReservationForm({
     setSearch(book.title);
     setResults([]);
     setSelectedBook(null);
+    setIsSubscribedForAvailability(false);
+    setReservationSucceeded(false);
     setIsSearching(false);
     setIsCheckingAvailability(true);
     setSearchError(null);
     setMessage(null);
+    setAvailabilityAlertError(null);
 
     try {
       const response = await fetch(
@@ -167,6 +210,48 @@ export function ReservationForm({
     }
   }
 
+  async function toggleAvailabilityAlert() {
+    if (!selectedBook || selectedBook.available || isUpdatingAvailabilityAlert) return;
+
+    const action = isSubscribedForAvailability ? "cancel" : "subscribe";
+    setIsUpdatingAvailabilityAlert(true);
+    setAvailabilityAlertError(null);
+
+    try {
+      const response = await fetch("/api/notificacoes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookId: selectedBook.id, action }),
+      });
+      const data = await response.json().catch(() => null);
+
+      if (response.status === 409 && data?.code === "BOOK_AVAILABLE") {
+        setSelectedBook((current) =>
+          current ? { ...current, available: true } : current,
+        );
+        setMessage({
+          kind: "success",
+          text: "Este livro já está disponível. Você já pode reservá-lo.",
+        });
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data?.error ?? "Não foi possível atualizar seu aviso.");
+      }
+
+      setIsSubscribedForAvailability(action === "subscribe");
+    } catch (error) {
+      setAvailabilityAlertError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar seu aviso.",
+      );
+    } finally {
+      setIsUpdatingAvailabilityAlert(false);
+    }
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedBook || !selectedBook.available || isSubmitting) return;
@@ -183,6 +268,7 @@ export function ReservationForm({
       const data = await response.json();
 
       if (response.status === 409) {
+        setReservationSucceeded(false);
         setSelectedBook({ ...selectedBook, available: false });
         setMessage({
           kind: "error",
@@ -195,6 +281,7 @@ export function ReservationForm({
         throw new Error(data.error ?? "Não foi possível reservar o livro.");
       }
 
+      setReservationSucceeded(true);
       setSelectedBook({ ...selectedBook, available: false });
       setMessage({ kind: "success", text: "Livro reservado com sucesso!" });
     } catch (error) {
@@ -315,6 +402,43 @@ export function ReservationForm({
               >
                 {selectedBook.available ? "Disponível agora" : "Indisponível"}
               </p>
+            </div>
+          )}
+
+          {selectedBook && !selectedBook.available && !reservationSucceeded && (
+            <div
+              className="rounded-card border border-border bg-surface-2 p-4"
+              aria-live="polite"
+            >
+              <p className="font-medium text-foreground">
+                Quer ser avisado quando este livro estiver disponível?
+              </p>
+              <p className="mt-1 text-small text-muted">
+                O aviso aparecerá no sino de notificações. Ele não reserva o livro automaticamente.
+              </p>
+              <Button
+                type="button"
+                variant="secondary"
+                className="mt-3 w-full sm:w-auto"
+                disabled={isUpdatingAvailabilityAlert}
+                onClick={() => void toggleAvailabilityAlert()}
+              >
+                {isUpdatingAvailabilityAlert
+                  ? "Atualizando aviso..."
+                  : isSubscribedForAvailability
+                    ? "Cancelar aviso"
+                    : "Quero ser avisado"}
+              </Button>
+              {availabilityAlertError && (
+                <p role="alert" className="mt-2 text-small text-error">
+                  {availabilityAlertError}
+                </p>
+              )}
+              {isSubscribedForAvailability && (
+                <p className="mt-2 text-small text-success">
+                  Você será avisado quando o livro voltar a ficar disponível.
+                </p>
+              )}
             </div>
           )}
 

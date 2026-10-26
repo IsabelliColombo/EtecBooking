@@ -4,6 +4,7 @@ import { BookOpen, CalendarDays, Heart, Star, UserRound } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { BooksGrid } from "@/components/books/books-grid";
+import { ReservationReadingActions } from "@/components/perfil/reservation-reading-actions";
 import { requireAluno } from "@/lib/require-aluno";
 import type { BookDocument, ReservationDocument } from "@/lib/db/types";
 import type { Book } from "@/lib/mock-books";
@@ -17,6 +18,7 @@ type FavoriteDocument = {
 };
 
 type ReviewDocument = {
+  _id: ObjectId | string;
   userId: string;
   bookId: string;
   bookTitle?: string;
@@ -145,6 +147,7 @@ export default async function ProfilePage() {
         "Livro não encontrado no acervo",
     };
   });
+  const reviewsByBookId = new Map(reviews.map((review) => [review.bookId, review]));
 
   const initials = aluno.nome
     .trim()
@@ -223,7 +226,7 @@ export default async function ProfilePage() {
                 <ul className="space-y-3">
                   {reviews.map((review) => (
                     <li
-                      key={review._id.toHexString()}
+                      key={review._id.toString()}
                       className="rounded-card border border-border p-4"
                     >
                       <div className="flex items-center justify-between gap-4">
@@ -271,14 +274,24 @@ export default async function ProfilePage() {
                     key={reservation._id.toHexString()}
                     className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {reservation.displayBookTitle}
-                      </p>
-                      <p className="text-small text-muted">
-                        Reservado em {formatDate(reservation.reservedAt)} ·
-                        Devolver até {formatDate(reservation.dueDate)}
-                      </p>
+                    <div className="min-w-0 flex-1">
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {reservation.displayBookTitle}
+                        </p>
+                        <p className="text-small text-muted">
+                          Reservado em {formatDate(reservation.reservedAt)} ·
+                          Devolver até {formatDate(reservation.dueDate)}
+                        </p>
+                      </div>
+                      <ReservationReadingActions
+                        reservationId={reservation.reservationId}
+                        canMarkComplete={["active", "returned"].includes(reservation.status)}
+                        readingCompleted={reservation.readingStatus === "completed"}
+                        existingReview={
+                          reviewsByBookId.get(reservation.catalogBookId?.trim() || reservation.bookId)
+                        }
+                      />
                     </div>
                     <span className="w-fit rounded-full bg-surface-2 px-3 py-1 text-small text-muted">
                       {statusLabels[reservation.status] ?? "Reserva"}

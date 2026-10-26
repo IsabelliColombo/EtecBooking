@@ -27,4 +27,6 @@ export interface ReservationDocument {
   reservedAt: Date;
   dueDate: Date;
   returnedAt?: Date;
+  readingStatus?: "reading" | "completed";
+  readingFinishedAt?: Date;
 }
